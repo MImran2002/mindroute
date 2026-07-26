@@ -14,19 +14,29 @@ export async function apiRequest<T>(
   path: string,
   options?: RequestInit,
 ): Promise<T> {
-  const response = await fetch(`${env.apiUrl}${path}`, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...options?.headers,
-    },
-  });
+  let response: Response;
+
+  try {
+    response = await fetch(`${env.apiUrl}${path}`, {
+      ...options,
+      cache: 'no-store',
+      headers: {
+        'Content-Type': 'application/json',
+        ...options?.headers,
+      },
+    });
+  } catch {
+    throw new ApiError('The MindRoute API is unavailable.', 0);
+  }
 
   if (!response.ok) {
-    throw new ApiError(
-      `API request failed with status ${response.status}`,
-      response.status,
-    );
+    const payload = (await response.json().catch(() => null)) as
+      | { message?: string | string[] }
+      | null;
+    const message = Array.isArray(payload?.message)
+      ? payload.message.join(', ')
+      : payload?.message;
+    throw new ApiError(message ?? `Request failed (${response.status})`, response.status);
   }
 
   return response.json() as Promise<T>;

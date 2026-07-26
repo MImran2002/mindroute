@@ -40,9 +40,7 @@ exports.environmentValidationSchema = Joi.object({
         .valid('development', 'test', 'staging', 'production')
         .default('development'),
     PORT: Joi.number().port().default(3001),
-    FRONTEND_URL: Joi.string().uri().required(),
-    DATABASE_URL: Joi.string()
-        .uri({ scheme: ['postgresql', 'postgres'] })
-        .required(),
+    FRONTEND_URL: Joi.string().default('http://localhost:3000'),
+    MAPBOX_ACCESS_TOKEN: Joi.string().min(20).required(),
 });
 //# sourceMappingURL=env.validation.js.map

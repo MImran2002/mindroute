@@ -4,10 +4,10 @@ declare const _default: () => {
         port: number;
     };
     frontend: {
-        url: string;
+        urls: string[];
     };
-    database: {
-        url: string | undefined;
+    mapbox: {
+        accessToken: string;
     };
 };
 export default _default;

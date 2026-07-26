@@ -4,10 +4,11 @@
   "private": true,
   "packageManager": "pnpm@11.13.1",
   "scripts": {
+    "dev": "pnpm --parallel --filter api --filter web dev",
     "dev:web": "pnpm --filter web dev",
     "dev:api": "pnpm --filter api start:dev",
     "build": "pnpm --recursive run build",
     "lint": "pnpm --recursive run lint",
-    "test": "pnpm --recursive run test"
+    "test": "pnpm --recursive run test --if-present"
   }
 }

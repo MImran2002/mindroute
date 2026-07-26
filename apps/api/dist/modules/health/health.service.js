@@ -13,6 +13,7 @@ let HealthService = class HealthService {
         return {
             status: 'ok',
             service: 'mindroute-api',
+            version: '0.1.0',
             timestamp: new Date().toISOString(),
             uptimeSeconds: Math.floor(process.uptime()),
         };
