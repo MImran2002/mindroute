@@ -60,7 +60,19 @@ export class LocationsService {
     }
 
     if (!response.ok) {
-      throw new BadGatewayException('Location search failed');
+      const providerMessage = await response.text();
+    
+      console.error('Mapbox request failed:', {
+        status: response.status,
+        statusText: response.statusText,
+        body: providerMessage,
+      });
+    
+      throw new BadGatewayException({
+        message: 'Location search failed',
+        providerStatus: response.status,
+        providerMessage,
+      });
     }
 
     const data = (await response.json()) as MapboxGeocodingResponse;
