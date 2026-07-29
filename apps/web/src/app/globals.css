@@ -196,3 +196,33 @@ h1 { margin: 0; font-size: 2.25rem; line-height: 1; }
   .route-list { grid-template-columns: 1fr; }
   .route-card { grid-template-columns: 1fr auto auto; align-items: center; }
 }
+
+/* MindRoute map layout */
+.app-shell {
+  display: grid;
+  grid-template-columns: minmax(320px, 420px) 1fr;
+  min-height: 100vh;
+}
+
+.map-region {
+  position: relative;
+  min-height: 600px;
+  width: 100%;
+}
+
+.map-container {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+@media (max-width: 900px) {
+  .app-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .map-region {
+    min-height: 500px;
+  }
+}
