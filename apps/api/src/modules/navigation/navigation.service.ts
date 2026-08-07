@@ -5,6 +5,7 @@ import {
   ServiceUnavailableException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+
 import type { GetRoutesDto } from './dto/get-routes.dto';
 import { EnvironmentalAggregationService } from './environmental-aggregation.service';
 import type {
@@ -18,15 +19,23 @@ import type {
   EnvironmentalDataStatus,
   RouteSampleEnvironment,
 } from './interfaces/environmental-observation.interface';
+import type { RouteComparisonRow } from './interfaces/route-comparison-row.interface';
+import type { RouteRecommendation } from './interfaces/route-recommendation.interface';
 import type { RouteFeatures } from './interfaces/route-features.interface';
 import type { RouteSamplePoint } from './interfaces/route-sample.interface';
+import type { RouteScore } from './interfaces/route-score.interface';
 import { MockEnvironmentalProvider } from './providers/mock-environmental.provider';
 import { OpenStreetMapEnvironmentalProvider } from './providers/openstreetmap-environmental.provider';
+import { RouteBaselineScorerService } from './route-baseline-scorer.service';
+import { RouteComparisonRowService } from './route-comparison-row.service';
+import { RouteRecommendationService } from './route-recommendation.service';
 import { RouteFeatureExtractorService } from './route-feature-extractor.service';
 import { RouteSamplingService } from './route-sampling.service';
 
 export interface WalkingRoute {
   id: string;
+  rank: number;
+
   distanceMeters: number;
   durationSeconds: number;
 
@@ -38,11 +47,13 @@ export interface WalkingRoute {
   features: RouteFeatures;
 
   environmentalSummary: AggregatedRouteEnvironment;
-
   environmentalDataStatus: EnvironmentalDataStatus;
 
-  samples: RouteSamplePoint[];
+  comparisonRow: RouteComparisonRow;
+  score: RouteScore;
+  recommendation?: RouteRecommendation;
 
+  samples: RouteSamplePoint[];
   sampleEnvironments: RouteSampleEnvironment[];
 
   instructions: Array<{
@@ -58,6 +69,9 @@ export class NavigationService {
     private readonly config: ConfigService,
     private readonly routeFeatureExtractor: RouteFeatureExtractorService,
     private readonly routeSamplingService: RouteSamplingService,
+    private readonly routeComparisonRowService: RouteComparisonRowService,
+    private readonly routeBaselineScorerService: RouteBaselineScorerService,
+    private readonly routeRecommendationService: RouteRecommendationService,
     private readonly environmentalAggregationService: EnvironmentalAggregationService,
     private readonly openStreetMapEnvironmentalProvider: OpenStreetMapEnvironmentalProvider,
     private readonly mockEnvironmentalProvider: MockEnvironmentalProvider,
@@ -115,8 +129,8 @@ export class NavigationService {
       ...candidateRoutes.map((route) => route.durationSeconds),
     );
 
-    return Promise.all(
-      candidateRoutes.map(async (route) => {
+    const analyzedRoutes = await Promise.all(
+      candidateRoutes.map(async (route): Promise<WalkingRoute> => {
         const navigationFeatures = this.routeFeatureExtractor.extract(
           route,
           fastestDurationSeconds,
@@ -150,13 +164,9 @@ export class NavigationService {
           estimatedShadeExposure: environmentalSummary.estimatedShadeExposure,
 
           greeneryExposure: environmentalSummary.greeneryExposure,
-
           parkExposure: environmentalSummary.parkExposure,
-
           pedestrianDensity: environmentalSummary.pedestrianDensity,
-
           trafficExposure: environmentalSummary.trafficExposure,
-
           noiseExposure: environmentalSummary.noiseExposure,
 
           commercialActivityExposure:
@@ -171,14 +181,30 @@ export class NavigationService {
           dataConfidence: environmentalSummary.dataConfidence,
         };
 
+        const comparisonRow = this.routeComparisonRowService.createRow({
+          routeId: route.id,
+          features,
+          environmentalDataStatus,
+        });
+
+        const score = this.routeBaselineScorerService.scoreRoute(comparisonRow);
+
         return {
           id: route.id,
+          rank: 0,
+
           distanceMeters: route.distanceMeters,
           durationSeconds: route.durationSeconds,
+
           geometry: route.geometry,
           features,
+
           environmentalSummary,
           environmentalDataStatus,
+
+          comparisonRow,
+          score,
+
           samples,
           sampleEnvironments,
 
@@ -190,6 +216,18 @@ export class NavigationService {
         };
       }),
     );
+
+    const rankedRoutes = analyzedRoutes
+      .sort(
+        (firstRoute, secondRoute) =>
+          firstRoute.score.finalScore - secondRoute.score.finalScore,
+      )
+      .map((route, index) => ({
+        ...route,
+        rank: index + 1,
+      }));
+
+    return this.routeRecommendationService.assignRecommendations(rankedRoutes);
   }
 
   private normalizeCandidateRoute(

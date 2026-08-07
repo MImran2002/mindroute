@@ -4,14 +4,18 @@ import { NavigationController } from './navigation.controller';
 import { NavigationService } from './navigation.service';
 import { MockEnvironmentalProvider } from './providers/mock-environmental.provider';
 import { OpenStreetMapEnvironmentalProvider } from './providers/openstreetmap-environmental.provider';
+import { RouteRecommendationService } from './route-recommendation.service';
 import { RouteFeatureExtractorService } from './route-feature-extractor.service';
 import { RouteSamplingService } from './route-sampling.service';
+import { RouteBaselineScorerService } from './route-baseline-scorer.service';
 import { RouteComparisonRowService } from './route-comparison-row.service';
 
 @Module({
   controllers: [NavigationController],
 
   providers: [
+    RouteRecommendationService,
+    RouteBaselineScorerService,
     RouteComparisonRowService,
     NavigationService,
     RouteFeatureExtractorService,
