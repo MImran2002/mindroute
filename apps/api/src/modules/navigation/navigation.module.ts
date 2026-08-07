@@ -6,12 +6,14 @@ import { MockEnvironmentalProvider } from './providers/mock-environmental.provid
 import { OpenStreetMapEnvironmentalProvider } from './providers/openstreetmap-environmental.provider';
 import { RouteFeatureExtractorService } from './route-feature-extractor.service';
 import { RouteSamplingService } from './route-sampling.service';
+import { RouteBaselineScorerService } from './route-baseline-scorer.service';
 import { RouteComparisonRowService } from './route-comparison-row.service';
 
 @Module({
   controllers: [NavigationController],
 
   providers: [
+    RouteBaselineScorerService,
     RouteComparisonRowService,
     NavigationService,
     RouteFeatureExtractorService,

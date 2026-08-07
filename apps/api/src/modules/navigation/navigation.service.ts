@@ -18,10 +18,12 @@ import type {
   EnvironmentalDataStatus,
   RouteSampleEnvironment,
 } from './interfaces/environmental-observation.interface';
+import type { RouteComparisonRow } from './interfaces/route-comparison-row.interface';
 import type { RouteFeatures } from './interfaces/route-features.interface';
 import type { RouteSamplePoint } from './interfaces/route-sample.interface';
 import { MockEnvironmentalProvider } from './providers/mock-environmental.provider';
 import { OpenStreetMapEnvironmentalProvider } from './providers/openstreetmap-environmental.provider';
+import { RouteComparisonRowService } from './route-comparison-row.service';
 import { RouteFeatureExtractorService } from './route-feature-extractor.service';
 import { RouteSamplingService } from './route-sampling.service';
 
@@ -41,6 +43,8 @@ export interface WalkingRoute {
 
   environmentalDataStatus: EnvironmentalDataStatus;
 
+  comparisonRow: RouteComparisonRow;
+
   samples: RouteSamplePoint[];
 
   sampleEnvironments: RouteSampleEnvironment[];
@@ -58,6 +62,7 @@ export class NavigationService {
     private readonly config: ConfigService,
     private readonly routeFeatureExtractor: RouteFeatureExtractorService,
     private readonly routeSamplingService: RouteSamplingService,
+    private readonly routeComparisonRowService: RouteComparisonRowService,
     private readonly environmentalAggregationService: EnvironmentalAggregationService,
     private readonly openStreetMapEnvironmentalProvider: OpenStreetMapEnvironmentalProvider,
     private readonly mockEnvironmentalProvider: MockEnvironmentalProvider,
@@ -171,6 +176,12 @@ export class NavigationService {
           dataConfidence: environmentalSummary.dataConfidence,
         };
 
+        const comparisonRow = this.routeComparisonRowService.createRow({
+          routeId: route.id,
+          features,
+          environmentalDataStatus,
+        });
+
         return {
           id: route.id,
           distanceMeters: route.distanceMeters,
@@ -179,6 +190,7 @@ export class NavigationService {
           features,
           environmentalSummary,
           environmentalDataStatus,
+          comparisonRow,
           samples,
           sampleEnvironments,
 
