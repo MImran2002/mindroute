@@ -61,13 +61,13 @@ export class LocationsService {
 
     if (!response.ok) {
       const providerMessage = await response.text();
-    
+
       console.error('Mapbox request failed:', {
         status: response.status,
         statusText: response.statusText,
         body: providerMessage,
       });
-    
+
       throw new BadGatewayException({
         message: 'Location search failed',
         providerStatus: response.status,
