@@ -6,12 +6,24 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { GetRoutesDto } from './dto/get-routes.dto';
+import { EnvironmentalAggregationService } from './environmental-aggregation.service';
 import type {
   CandidateRoute,
   MapboxDirectionsResponse,
   MapboxRoute,
   RouteStep,
 } from './interfaces/candidate-route.interface';
+import type {
+  AggregatedRouteEnvironment,
+  EnvironmentalDataStatus,
+  RouteSampleEnvironment,
+} from './interfaces/environmental-observation.interface';
+import type { RouteFeatures } from './interfaces/route-features.interface';
+import type { RouteSamplePoint } from './interfaces/route-sample.interface';
+import { MockEnvironmentalProvider } from './providers/mock-environmental.provider';
+import { OpenStreetMapEnvironmentalProvider } from './providers/openstreetmap-environmental.provider';
+import { RouteFeatureExtractorService } from './route-feature-extractor.service';
+import { RouteSamplingService } from './route-sampling.service';
 
 export interface WalkingRoute {
   id: string;
@@ -23,6 +35,16 @@ export interface WalkingRoute {
     coordinates: [number, number][];
   };
 
+  features: RouteFeatures;
+
+  environmentalSummary: AggregatedRouteEnvironment;
+
+  environmentalDataStatus: EnvironmentalDataStatus;
+
+  samples: RouteSamplePoint[];
+
+  sampleEnvironments: RouteSampleEnvironment[];
+
   instructions: Array<{
     instruction: string;
     distanceMeters: number;
@@ -32,7 +54,14 @@ export interface WalkingRoute {
 
 @Injectable()
 export class NavigationService {
-  constructor(private readonly config: ConfigService) {}
+  constructor(
+    private readonly config: ConfigService,
+    private readonly routeFeatureExtractor: RouteFeatureExtractorService,
+    private readonly routeSamplingService: RouteSamplingService,
+    private readonly environmentalAggregationService: EnvironmentalAggregationService,
+    private readonly openStreetMapEnvironmentalProvider: OpenStreetMapEnvironmentalProvider,
+    private readonly mockEnvironmentalProvider: MockEnvironmentalProvider,
+  ) {}
 
   async getWalkingRoutes(input: GetRoutesDto): Promise<WalkingRoute[]> {
     const token = this.config.get<string>('mapbox.accessToken');
@@ -52,8 +81,6 @@ export class NavigationService {
       overview: 'full',
       steps: 'true',
       language: 'en',
-
-      // Request segment-level distance and duration information.
       annotations: 'distance,duration',
     });
 
@@ -80,41 +107,91 @@ export class NavigationService {
       throw new NotFoundException('No walking routes were found');
     }
 
-    /*
-     * Normalize every Mapbox route into MindRoute's internal
-     * CandidateRoute format.
-     *
-     * Future feature-extraction and environmental-enrichment
-     * services will consume these candidate routes rather than
-     * depending directly on Mapbox's response format.
-     */
     const candidateRoutes = data.routes
       .slice(0, 3)
       .map((route, index) => this.normalizeCandidateRoute(route, index));
 
-    /*
-     * Keep the current API response compatible with the frontend.
-     * Later we will add extracted features and environmental values
-     * to this response.
-     */
-    return candidateRoutes.map((route) => ({
-      id: route.id,
-      distanceMeters: route.distanceMeters,
-      durationSeconds: route.durationSeconds,
-      geometry: route.geometry,
+    const fastestDurationSeconds = Math.min(
+      ...candidateRoutes.map((route) => route.durationSeconds),
+    );
 
-      instructions: route.steps.map((step) => ({
-        instruction: step.maneuver.instruction ?? 'Continue',
-        distanceMeters: step.distanceMeters,
-        durationSeconds: step.durationSeconds,
-      })),
-    }));
+    return Promise.all(
+      candidateRoutes.map(async (route) => {
+        const navigationFeatures = this.routeFeatureExtractor.extract(
+          route,
+          fastestDurationSeconds,
+        );
+
+        const samples = this.routeSamplingService.sampleRoute(route, 100);
+
+        let sampleEnvironments: RouteSampleEnvironment[];
+        let environmentalDataStatus: EnvironmentalDataStatus = 'real';
+
+        try {
+          sampleEnvironments =
+            await this.openStreetMapEnvironmentalProvider.getEnvironmentForSamples(
+              samples,
+            );
+        } catch {
+          sampleEnvironments =
+            await this.mockEnvironmentalProvider.getEnvironmentForSamples(
+              samples,
+            );
+
+          environmentalDataStatus = 'fallback';
+        }
+
+        const environmentalSummary =
+          this.environmentalAggregationService.aggregate(sampleEnvironments);
+
+        const features: RouteFeatures = {
+          ...navigationFeatures,
+
+          estimatedShadeExposure: environmentalSummary.estimatedShadeExposure,
+
+          greeneryExposure: environmentalSummary.greeneryExposure,
+
+          parkExposure: environmentalSummary.parkExposure,
+
+          pedestrianDensity: environmentalSummary.pedestrianDensity,
+
+          trafficExposure: environmentalSummary.trafficExposure,
+
+          noiseExposure: environmentalSummary.noiseExposure,
+
+          commercialActivityExposure:
+            environmentalSummary.commercialActivityExposure,
+
+          constructionExposure: environmentalSummary.constructionExposure,
+
+          eventExposure: environmentalSummary.eventExposure,
+
+          pointOfInterestDensity: environmentalSummary.pointOfInterestDensity,
+
+          dataConfidence: environmentalSummary.dataConfidence,
+        };
+
+        return {
+          id: route.id,
+          distanceMeters: route.distanceMeters,
+          durationSeconds: route.durationSeconds,
+          geometry: route.geometry,
+          features,
+          environmentalSummary,
+          environmentalDataStatus,
+          samples,
+          sampleEnvironments,
+
+          instructions: route.steps.map((step) => ({
+            instruction: step.maneuver.instruction ?? 'Continue',
+            distanceMeters: step.distanceMeters,
+            durationSeconds: step.durationSeconds,
+          })),
+        };
+      }),
+    );
   }
 
-  /**
-   * Converts a provider-specific Mapbox route into MindRoute's
-   * provider-independent CandidateRoute representation.
-   */
   private normalizeCandidateRoute(
     route: MapboxRoute,
     index: number,
