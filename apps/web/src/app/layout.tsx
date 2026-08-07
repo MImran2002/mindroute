@@ -1,3 +1,4 @@
+import 'mapbox-gl/dist/mapbox-gl.css';
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 
