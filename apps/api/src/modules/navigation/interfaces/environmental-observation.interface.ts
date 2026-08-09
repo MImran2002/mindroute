@@ -34,6 +34,15 @@ export type EnvironmentalDataSource =
   | 'unknown';
 
 /**
+ * Describes how route-level environmental data was obtained.
+ *
+ * This is intentionally separate from EnvironmentalDataSource,
+ * which identifies the underlying observation provider.
+ */
+export type EnvironmentalRetrievalSource =
+  'live' | 'cache' | 'mixed' | 'fallback';
+
+/**
  * One normalized environmental measurement near a route
  * sample point.
  *

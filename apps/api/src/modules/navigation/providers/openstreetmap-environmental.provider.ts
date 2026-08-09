@@ -7,6 +7,7 @@ import type {
 import type { RouteCoordinate } from '../interfaces/candidate-route.interface';
 import type { RouteSamplePoint } from '../interfaces/route-sample.interface';
 import type { EnvironmentalProvider } from './environmental-provider.interface';
+import { MockEnvironmentalProvider } from './mock-environmental.provider';
 import type {
   OpenStreetMapElement,
   OpenStreetMapOverpassResponse,
@@ -21,7 +22,13 @@ interface BoundingBox {
 
 @Injectable()
 export class OpenStreetMapEnvironmentalProvider implements EnvironmentalProvider {
+  constructor(
+    private readonly mockEnvironmentalProvider: MockEnvironmentalProvider,
+  ) {}
+
   private readonly cacheTtlMs = 5 * 60 * 1000;
+
+  private lastDataSource: 'live' | 'cache' | 'mixed' | 'fallback' = 'live';
 
   private readonly elementCache = new Map<
     string,
@@ -33,10 +40,16 @@ export class OpenStreetMapEnvironmentalProvider implements EnvironmentalProvider
 
   private readonly logger = new Logger(OpenStreetMapEnvironmentalProvider.name);
 
+  private readonly providerCooldownMs = 2 * 60 * 1000;
+
+  private readonly providerCooldownUntil = new Map<string, number>();
+
+  private preferredOverpassUrl: string | null = null;
+
   private readonly overpassUrls: string[] = [
+    'https://overpass-api.de/api/interpreter',
     'https://overpass.kumi.systems/api/interpreter',
     'https://overpass.private.coffee/api/interpreter',
-    'https://overpass-api.de/api/interpreter',
   ];
 
   async getEnvironmentForSamples(
@@ -46,27 +59,106 @@ export class OpenStreetMapEnvironmentalProvider implements EnvironmentalProvider
       return [];
     }
 
-    const boundingBox = this.calculateBoundingBox(samples, 150);
+    const environmentalRequestStartedAt = Date.now();
 
-    const elements = await this.fetchElements(boundingBox);
+    const sampleGroups = this.chunkSamples(samples, 20);
 
     const retrievedAt = new Date().toISOString();
+    const environments: RouteSampleEnvironment[] = [];
 
-    return samples.map((sample) => ({
-      sampleId: sample.id,
-      routeId: sample.routeId,
-      coordinate: sample.coordinate,
+    let usedLiveData = false;
+    let usedCacheData = false;
+    let usedFallbackData = false;
 
-      observations: this.createObservationsForSample(
-        sample,
-        elements,
-        retrievedAt,
-      ),
-    }));
+    for (const sampleGroup of sampleGroups) {
+      const boundingBox = this.calculateBoundingBox(sampleGroup, 150);
+
+      try {
+        const elements = await this.fetchElements(
+          boundingBox,
+          environmentalRequestStartedAt,
+        );
+
+        if (this.lastDataSource === 'cache') {
+          usedCacheData = true;
+        } else {
+          usedLiveData = true;
+        }
+
+        for (const sample of sampleGroup) {
+          environments.push({
+            sampleId: sample.id,
+            routeId: sample.routeId,
+            coordinate: sample.coordinate,
+            observations: this.createObservationsForSample(
+              sample,
+              elements,
+              retrievedAt,
+            ),
+          });
+        }
+      } catch (error: unknown) {
+        usedFallbackData = true;
+
+        const message =
+          error instanceof Error
+            ? error.message
+            : 'Unknown environmental retrieval error';
+
+        this.logger.warn(
+          `Using mock environmental data for ${sampleGroup.length} sample(s): ${message}`,
+        );
+
+        const fallbackEnvironments =
+          await this.mockEnvironmentalProvider.getEnvironmentForSamples(
+            sampleGroup,
+          );
+
+        environments.push(...fallbackEnvironments);
+      }
+    }
+
+    if (usedFallbackData && (usedLiveData || usedCacheData)) {
+      this.lastDataSource = 'mixed';
+    } else if (usedFallbackData) {
+      this.lastDataSource = 'fallback';
+    } else if (usedLiveData) {
+      this.lastDataSource = 'live';
+    } else if (usedCacheData) {
+      this.lastDataSource = 'cache';
+    }
+
+    return environments;
+  }
+
+  private chunkSamples(
+    samples: RouteSamplePoint[],
+    groupSize: number,
+  ): RouteSamplePoint[][] {
+    const samplesByRoute = new Map<string, RouteSamplePoint[]>();
+
+    for (const sample of samples) {
+      const routeSamples = samplesByRoute.get(sample.routeId) ?? [];
+
+      routeSamples.push(sample);
+
+      samplesByRoute.set(sample.routeId, routeSamples);
+    }
+
+    const groups: RouteSamplePoint[][] = [];
+
+    for (const routeSamples of samplesByRoute.values()) {
+      for (let index = 0; index < routeSamples.length; index += groupSize) {
+        groups.push(routeSamples.slice(index, index + groupSize));
+      }
+    }
+
+    return groups;
   }
 
   private async fetchElements(
     boundingBox: BoundingBox,
+    environmentalRequestStartedAt: number,
   ): Promise<OpenStreetMapElement[]> {
     const cacheKey = this.createCacheKey(boundingBox);
 
@@ -79,6 +171,8 @@ export class OpenStreetMapEnvironmentalProvider implements EnvironmentalProvider
             `${cached.elements.length} element(s)`,
         );
 
+        this.lastDataSource = 'cache';
+
         return cached.elements;
       }
 
@@ -89,7 +183,25 @@ export class OpenStreetMapEnvironmentalProvider implements EnvironmentalProvider
 
     const failures: string[] = [];
 
-    for (const overpassUrl of this.overpassUrls) {
+    const orderedOverpassUrls =
+      this.preferredOverpassUrl === null
+        ? this.overpassUrls
+        : [
+            this.preferredOverpassUrl,
+            ...this.overpassUrls.filter(
+              (url) => url !== this.preferredOverpassUrl,
+            ),
+          ];
+
+    for (const overpassUrl of orderedOverpassUrls) {
+      const cooldownUntil = this.providerCooldownUntil.get(overpassUrl);
+
+      if (cooldownUntil !== undefined && cooldownUntil > Date.now()) {
+        this.logger.warn(`Skipping ${overpassUrl}; provider cooling down`);
+
+        continue;
+      }
+
       const startedAt = Date.now();
 
       try {
@@ -106,7 +218,7 @@ export class OpenStreetMapEnvironmentalProvider implements EnvironmentalProvider
             data: query,
           }).toString(),
 
-          signal: AbortSignal.timeout(30000),
+          signal: AbortSignal.timeout(this.getProviderTimeoutMs(overpassUrl)),
         });
 
         const durationMs = Date.now() - startedAt;
@@ -119,6 +231,11 @@ export class OpenStreetMapEnvironmentalProvider implements EnvironmentalProvider
           failures.push(failure);
           this.logger.warn(failure);
 
+          this.providerCooldownUntil.set(
+            overpassUrl,
+            Date.now() + this.providerCooldownMs,
+          );
+
           continue;
         }
 
@@ -130,6 +247,14 @@ export class OpenStreetMapEnvironmentalProvider implements EnvironmentalProvider
           `Overpass success from ${overpassUrl}: ` +
             `${elements.length} element(s) in ${durationMs}ms`,
         );
+
+        this.preferredOverpassUrl = overpassUrl;
+
+        this.logger.log(`Preferred Overpass provider is now ${overpassUrl}`);
+
+        this.providerCooldownUntil.delete(overpassUrl);
+
+        this.lastDataSource = 'live';
 
         this.elementCache.set(cacheKey, {
           elements,
@@ -147,6 +272,11 @@ export class OpenStreetMapEnvironmentalProvider implements EnvironmentalProvider
 
         failures.push(failure);
         this.logger.warn(failure);
+
+        this.providerCooldownUntil.set(
+          overpassUrl,
+          Date.now() + this.providerCooldownMs,
+        );
       }
     }
 
@@ -155,6 +285,14 @@ export class OpenStreetMapEnvironmentalProvider implements EnvironmentalProvider
         '; ',
       )}`,
     );
+  }
+
+  private getProviderTimeoutMs(overpassUrl: string): number {
+    if (overpassUrl.includes('overpass-api.de')) {
+      return 15000;
+    }
+
+    return 5000;
   }
 
   private buildOverpassQuery(boundingBox: BoundingBox): string {
@@ -473,6 +611,10 @@ out center tags;
     }
 
     return null;
+  }
+
+  getLastDataSource(): 'live' | 'cache' | 'mixed' | 'fallback' {
+    return this.lastDataSource;
   }
 
   private calculateBoundingBox(

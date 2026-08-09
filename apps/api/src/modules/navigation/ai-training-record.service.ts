@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
 import type { AITrainingRecord } from './interfaces/ai-training-record.interface';
+import type { EnvironmentalRetrievalSource } from './interfaces/environmental-observation.interface';
 import type { RouteCandidateSource } from './interfaces/candidate-route.interface';
 import type { RouteComparisonRow } from './interfaces/route-comparison-row.interface';
 import type { RouteRecommendation } from './interfaces/route-recommendation.interface';
@@ -20,6 +21,7 @@ interface CreateAITrainingRecordInput {
   score: RouteScore;
   rank: number;
   recommendation: RouteRecommendation;
+  environmentalRetrievalSource: EnvironmentalRetrievalSource;
 }
 
 @Injectable()
@@ -37,10 +39,11 @@ export class AITrainingRecordService {
       score,
       rank,
       recommendation,
+      environmentalRetrievalSource,
     } = input;
 
     return {
-      schemaVersion: '1.3',
+      schemaVersion: '1.4',
 
       requestId,
       capturedAt,
@@ -85,6 +88,7 @@ export class AITrainingRecordService {
 
       dataConfidence: comparisonRow.dataConfidence,
       environmentalDataStatus: comparisonRow.environmentalDataStatus,
+      environmentalRetrievalSource,
 
       baselineCognitiveLoadScore: score.cognitiveLoadScore,
       baselineComfortScore: score.comfortScore,

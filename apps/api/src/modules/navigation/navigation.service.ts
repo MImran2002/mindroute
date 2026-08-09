@@ -23,7 +23,9 @@ import type {
   RouteStep,
 } from './interfaces/candidate-route.interface';
 import type {
+  EnvironmentalRetrievalSource,
   AggregatedRouteEnvironment,
+  EnvironmentalDataSource,
   EnvironmentalDataStatus,
   RouteSampleEnvironment,
 } from './interfaces/environmental-observation.interface';
@@ -62,6 +64,7 @@ export interface WalkingRoute {
 
   environmentalSummary: AggregatedRouteEnvironment;
   environmentalDataStatus: EnvironmentalDataStatus;
+  environmentalDataSource: EnvironmentalRetrievalSource;
 
   comparisonRow: RouteComparisonRow;
   score: RouteScore;
@@ -171,11 +174,16 @@ export class NavigationService {
 
     let environmentalDataStatus: EnvironmentalDataStatus = 'real';
 
+    let environmentalDataSource: EnvironmentalRetrievalSource = 'live';
+
     try {
       allSampleEnvironments =
         await this.openStreetMapEnvironmentalProvider.getEnvironmentForSamples(
           allSamples,
         );
+
+      environmentalDataSource =
+        this.openStreetMapEnvironmentalProvider.getLastDataSource();
     } catch {
       allSampleEnvironments =
         await this.mockEnvironmentalProvider.getEnvironmentForSamples(
@@ -183,6 +191,7 @@ export class NavigationService {
         );
 
       environmentalDataStatus = 'fallback';
+      environmentalDataSource = 'fallback';
     }
 
     const environmentsByRouteId = new Map<string, RouteSampleEnvironment[]>();
@@ -260,6 +269,7 @@ export class NavigationService {
 
           environmentalSummary,
           environmentalDataStatus,
+          environmentalDataSource,
 
           comparisonRow,
           score,
@@ -305,6 +315,7 @@ export class NavigationService {
         score: route.score,
         rank: route.rank,
         recommendation: route.recommendation!,
+        environmentalRetrievalSource: route.environmentalDataSource,
       }),
     }));
 
