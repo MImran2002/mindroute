@@ -156,6 +156,45 @@ export class NavigationService {
       ...candidateRoutes.map((route) => route.durationSeconds),
     );
 
+    const routeSamples = new Map<string, RouteSamplePoint[]>();
+
+    for (const route of candidateRoutes) {
+      routeSamples.set(
+        route.id,
+        this.routeSamplingService.sampleRoute(route, 100),
+      );
+    }
+
+    const allSamples = Array.from(routeSamples.values()).flat();
+
+    let allSampleEnvironments: RouteSampleEnvironment[];
+
+    let environmentalDataStatus: EnvironmentalDataStatus = 'real';
+
+    try {
+      allSampleEnvironments =
+        await this.openStreetMapEnvironmentalProvider.getEnvironmentForSamples(
+          allSamples,
+        );
+    } catch {
+      allSampleEnvironments =
+        await this.mockEnvironmentalProvider.getEnvironmentForSamples(
+          allSamples,
+        );
+
+      environmentalDataStatus = 'fallback';
+    }
+
+    const environmentsByRouteId = new Map<string, RouteSampleEnvironment[]>();
+
+    for (const environment of allSampleEnvironments) {
+      const existing = environmentsByRouteId.get(environment.routeId) ?? [];
+
+      existing.push(environment);
+
+      environmentsByRouteId.set(environment.routeId, existing);
+    }
+
     const analyzedRoutes = await Promise.all(
       candidateRoutes.map(async (route): Promise<WalkingRoute> => {
         const navigationFeatures = this.routeFeatureExtractor.extract(
@@ -163,24 +202,9 @@ export class NavigationService {
           fastestDurationSeconds,
         );
 
-        const samples = this.routeSamplingService.sampleRoute(route, 100);
+        const samples = routeSamples.get(route.id) ?? [];
 
-        let sampleEnvironments: RouteSampleEnvironment[];
-        let environmentalDataStatus: EnvironmentalDataStatus = 'real';
-
-        try {
-          sampleEnvironments =
-            await this.openStreetMapEnvironmentalProvider.getEnvironmentForSamples(
-              samples,
-            );
-        } catch {
-          sampleEnvironments =
-            await this.mockEnvironmentalProvider.getEnvironmentForSamples(
-              samples,
-            );
-
-          environmentalDataStatus = 'fallback';
-        }
+        const sampleEnvironments = environmentsByRouteId.get(route.id) ?? [];
 
         const environmentalSummary =
           this.environmentalAggregationService.aggregate(sampleEnvironments);
@@ -191,9 +215,13 @@ export class NavigationService {
           estimatedShadeExposure: environmentalSummary.estimatedShadeExposure,
 
           greeneryExposure: environmentalSummary.greeneryExposure,
+
           parkExposure: environmentalSummary.parkExposure,
+
           pedestrianDensity: environmentalSummary.pedestrianDensity,
+
           trafficExposure: environmentalSummary.trafficExposure,
+
           noiseExposure: environmentalSummary.noiseExposure,
 
           commercialActivityExposure:
@@ -219,12 +247,15 @@ export class NavigationService {
         return {
           id: route.id,
           candidateSource: route.candidateSource,
+
           rank: 0,
 
           distanceMeters: route.distanceMeters,
+
           durationSeconds: route.durationSeconds,
 
           geometry: route.geometry,
+
           features,
 
           environmentalSummary,
@@ -238,7 +269,9 @@ export class NavigationService {
 
           instructions: route.steps.map((step) => ({
             instruction: step.maneuver.instruction ?? 'Continue',
+
             distanceMeters: step.distanceMeters,
+
             durationSeconds: step.durationSeconds,
           })),
         };
