@@ -21,6 +21,16 @@ interface BoundingBox {
 
 @Injectable()
 export class OpenStreetMapEnvironmentalProvider implements EnvironmentalProvider {
+  private readonly cacheTtlMs = 5 * 60 * 1000;
+
+  private readonly elementCache = new Map<
+    string,
+    {
+      elements: OpenStreetMapElement[];
+      expiresAt: number;
+    }
+  >();
+
   private readonly logger = new Logger(OpenStreetMapEnvironmentalProvider.name);
 
   private readonly overpassUrls: string[] = [
@@ -58,6 +68,23 @@ export class OpenStreetMapEnvironmentalProvider implements EnvironmentalProvider
   private async fetchElements(
     boundingBox: BoundingBox,
   ): Promise<OpenStreetMapElement[]> {
+    const cacheKey = this.createCacheKey(boundingBox);
+
+    const cached = this.elementCache.get(cacheKey);
+
+    if (cached) {
+      if (cached.expiresAt > Date.now()) {
+        this.logger.log(
+          `Overpass cache hit for ${cacheKey}: ` +
+            `${cached.elements.length} element(s)`,
+        );
+
+        return cached.elements;
+      }
+
+      this.elementCache.delete(cacheKey);
+    }
+
     const query = this.buildOverpassQuery(boundingBox);
 
     const failures: string[] = [];
@@ -103,6 +130,11 @@ export class OpenStreetMapEnvironmentalProvider implements EnvironmentalProvider
           `Overpass success from ${overpassUrl}: ` +
             `${elements.length} element(s) in ${durationMs}ms`,
         );
+
+        this.elementCache.set(cacheKey, {
+          elements,
+          expiresAt: Date.now() + this.cacheTtlMs,
+        });
 
         return elements;
       } catch (error: unknown) {
@@ -169,6 +201,15 @@ export class OpenStreetMapEnvironmentalProvider implements EnvironmentalProvider
 );
 out center tags;
 `;
+  }
+
+  private createCacheKey(boundingBox: BoundingBox): string {
+    return [
+      boundingBox.south.toFixed(4),
+      boundingBox.west.toFixed(4),
+      boundingBox.north.toFixed(4),
+      boundingBox.east.toFixed(4),
+    ].join(':');
   }
 
   private createObservationsForSample(
