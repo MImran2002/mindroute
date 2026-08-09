@@ -1,8 +1,9 @@
 import type { EnvironmentalDataStatus } from './environmental-observation.interface';
+import type { RouteCandidateSource } from './candidate-route.interface';
 import type { RouteRecommendationLabel } from './route-recommendation.interface';
 
 export interface AITrainingRecord {
-  schemaVersion: '1.2';
+  schemaVersion: '1.3';
 
   requestId: string;
   capturedAt: string;
@@ -13,6 +14,7 @@ export interface AITrainingRecord {
   destinationLng: number;
 
   routeId: string;
+  candidateSource: RouteCandidateSource;
   rank: number;
 
   // Basic route information

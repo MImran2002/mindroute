@@ -4,6 +4,8 @@
  */
 export type RouteCoordinate = [number, number];
 
+export type RouteCandidateSource = 'direct' | 'left-offset' | 'right-offset';
+
 export interface RouteGeometry {
   type: 'LineString';
   coordinates: RouteCoordinate[];
@@ -35,6 +37,7 @@ export interface RouteStep {
 
 export interface CandidateRoute {
   id: string;
+  candidateSource: RouteCandidateSource;
   distanceMeters: number;
   durationSeconds: number;
   geometry: RouteGeometry;

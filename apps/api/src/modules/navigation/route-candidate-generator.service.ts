@@ -1,7 +1,9 @@
 import { Injectable } from '@nestjs/common';
 
+import type { RouteCandidateSource } from './interfaces/candidate-route.interface';
+
 export interface RouteCandidatePlan {
-  id: string;
+  id: RouteCandidateSource;
   coordinates: Array<[number, number]>;
   waypointIndexes: number[];
 }

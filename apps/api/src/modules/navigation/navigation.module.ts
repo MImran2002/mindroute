@@ -16,11 +16,13 @@ import { AITrainingStorageService } from './ai-training-storage.service';
 import { SupervisedTrainingDatasetService } from './supervised-training-dataset.service';
 import { TrainingDatasetStatsService } from './training-dataset-stats.service';
 import { RouteCandidateGeneratorService } from './route-candidate-generator.service';
+import { RouteGenerationDiagnosticsService } from './route-generation-diagnostics.service';
 
 @Module({
   controllers: [NavigationController],
 
   providers: [
+    RouteGenerationDiagnosticsService,
     RouteCandidateGeneratorService,
     TrainingDatasetStatsService,
     SupervisedTrainingDatasetService,
