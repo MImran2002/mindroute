@@ -7,6 +7,7 @@ import { RouteSelectionService } from './route-selection.service';
 import { SupervisedTrainingDatasetService } from './supervised-training-dataset.service';
 import { AITrainingDatasetService } from './ai-training-dataset.service';
 import { TrainingDatasetStatsService } from './training-dataset-stats.service';
+import { RouteGenerationDiagnosticsService } from './route-generation-diagnostics.service';
 
 @Controller('navigation')
 export class NavigationController {
@@ -16,6 +17,7 @@ export class NavigationController {
     private readonly supervisedTrainingDatasetService: SupervisedTrainingDatasetService,
     private readonly aiTrainingDatasetService: AITrainingDatasetService,
     private readonly trainingDatasetStatsService: TrainingDatasetStatsService,
+    private readonly routeGenerationDiagnosticsService: RouteGenerationDiagnosticsService,
   ) {}
 
   @Get('routes')
@@ -26,6 +28,11 @@ export class NavigationController {
   @Post('route-selections')
   recordRouteSelection(@Body() body: CreateRouteSelectionDto) {
     return this.routeSelectionService.recordSelection(body);
+  }
+
+  @Get('route-generation-stats')
+  getRouteGenerationStats() {
+    return this.routeGenerationDiagnosticsService.getStats();
   }
 
   @Get('training-dataset-stats')
