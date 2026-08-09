@@ -1,4 +1,4 @@
-import { BadGatewayException, Injectable } from '@nestjs/common';
+import { BadGatewayException, Injectable, Logger } from '@nestjs/common';
 import type {
   EnvironmentalFeatureType,
   EnvironmentalObservation,
@@ -21,9 +21,22 @@ interface BoundingBox {
 
 @Injectable()
 export class OpenStreetMapEnvironmentalProvider implements EnvironmentalProvider {
+  private readonly cacheTtlMs = 5 * 60 * 1000;
+
+  private readonly elementCache = new Map<
+    string,
+    {
+      elements: OpenStreetMapElement[];
+      expiresAt: number;
+    }
+  >();
+
+  private readonly logger = new Logger(OpenStreetMapEnvironmentalProvider.name);
+
   private readonly overpassUrls: string[] = [
-    'https' + '://overpass.private.coffee/api/interpreter',
-    'https' + '://overpass-api.de/api/interpreter',
+    'https://overpass.kumi.systems/api/interpreter',
+    'https://overpass.private.coffee/api/interpreter',
+    'https://overpass-api.de/api/interpreter',
   ];
 
   async getEnvironmentForSamples(
@@ -55,17 +68,38 @@ export class OpenStreetMapEnvironmentalProvider implements EnvironmentalProvider
   private async fetchElements(
     boundingBox: BoundingBox,
   ): Promise<OpenStreetMapElement[]> {
+    const cacheKey = this.createCacheKey(boundingBox);
+
+    const cached = this.elementCache.get(cacheKey);
+
+    if (cached) {
+      if (cached.expiresAt > Date.now()) {
+        this.logger.log(
+          `Overpass cache hit for ${cacheKey}: ` +
+            `${cached.elements.length} element(s)`,
+        );
+
+        return cached.elements;
+      }
+
+      this.elementCache.delete(cacheKey);
+    }
+
     const query = this.buildOverpassQuery(boundingBox);
 
     const failures: string[] = [];
 
     for (const overpassUrl of this.overpassUrls) {
+      const startedAt = Date.now();
+
       try {
         const response = await fetch(overpassUrl, {
           method: 'POST',
 
           headers: {
             'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+            Accept: 'application/json',
+            'User-Agent': 'MindRoute/0.1 development prototype',
           },
 
           body: new URLSearchParams({
@@ -75,20 +109,44 @@ export class OpenStreetMapEnvironmentalProvider implements EnvironmentalProvider
           signal: AbortSignal.timeout(30000),
         });
 
+        const durationMs = Date.now() - startedAt;
+
         if (!response.ok) {
-          failures.push(`${overpassUrl}: ${response.status}`);
+          const failure =
+            `${overpassUrl}: HTTP ${response.status} ` +
+            `after ${durationMs}ms`;
+
+          failures.push(failure);
+          this.logger.warn(failure);
 
           continue;
         }
 
         const data = (await response.json()) as OpenStreetMapOverpassResponse;
 
-        return data.elements ?? [];
+        const elements = data.elements ?? [];
+
+        this.logger.log(
+          `Overpass success from ${overpassUrl}: ` +
+            `${elements.length} element(s) in ${durationMs}ms`,
+        );
+
+        this.elementCache.set(cacheKey, {
+          elements,
+          expiresAt: Date.now() + this.cacheTtlMs,
+        });
+
+        return elements;
       } catch (error: unknown) {
+        const durationMs = Date.now() - startedAt;
+
         const message =
           error instanceof Error ? error.message : 'Unknown request error';
 
-        failures.push(`${overpassUrl}: ${message}`);
+        const failure = `${overpassUrl}: ${message} after ${durationMs}ms`;
+
+        failures.push(failure);
+        this.logger.warn(failure);
       }
     }
 
@@ -107,45 +165,51 @@ export class OpenStreetMapEnvironmentalProvider implements EnvironmentalProvider
       `${boundingBox.east}`;
 
     return `
-[out:json][timeout:20];
+[out:json][timeout:15];
 (
   node["amenity"](${box});
   way["amenity"](${box});
-  relation["amenity"](${box});
 
   node["shop"](${box});
   way["shop"](${box});
-  relation["shop"](${box});
 
   node["tourism"](${box});
-  way["tourism"](${box});
-  relation["tourism"](${box});
 
-  node["leisure"](${box});
-  way["leisure"](${box});
-  relation["leisure"](${box});
+  node["leisure"="park"](${box});
+  way["leisure"="park"](${box});
 
-  node["landuse"="grass"](${box});
-  way["landuse"="grass"](${box});
-  relation["landuse"="grass"](${box});
-
-  node["landuse"="forest"](${box});
-  way["landuse"="forest"](${box});
-  relation["landuse"="forest"](${box});
-
-  node["natural"="wood"](${box});
-  way["natural"="wood"](${box});
-  relation["natural"="wood"](${box});
+  node["leisure"="garden"](${box});
+  way["leisure"="garden"](${box});
 
   node["natural"="tree"](${box});
 
-  way["highway"](${box});
+  node["natural"="wood"](${box});
+  way["natural"="wood"](${box});
+
+  node["landuse"="forest"](${box});
+  way["landuse"="forest"](${box});
+
+  node["landuse"="grass"](${box});
+  way["landuse"="grass"](${box});
 
   node["highway"="crossing"](${box});
   node["highway"="traffic_signals"](${box});
+
+  way["highway"="primary"](${box});
+  way["highway"="secondary"](${box});
+  way["highway"="tertiary"](${box});
 );
 out center tags;
 `;
+  }
+
+  private createCacheKey(boundingBox: BoundingBox): string {
+    return [
+      boundingBox.south.toFixed(4),
+      boundingBox.west.toFixed(4),
+      boundingBox.north.toFixed(4),
+      boundingBox.east.toFixed(4),
+    ].join(':');
   }
 
   private createObservationsForSample(
