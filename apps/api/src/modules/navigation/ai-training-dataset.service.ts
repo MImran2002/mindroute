@@ -1,15 +1,13 @@
 import { Injectable } from '@nestjs/common';
 
-import type { AITrainingRecord } from './interfaces/ai-training-record.interface';
-
 @Injectable()
 export class AITrainingDatasetService {
-  toCsv(records: AITrainingRecord[]): string {
+  toCsv<T extends object>(records: T[]): string {
     if (records.length === 0) {
       return '';
     }
 
-    const headers = Object.keys(records[0]) as Array<keyof AITrainingRecord>;
+    const headers = Object.keys(records[0]) as Array<keyof T>;
 
     const rows = records.map((record) =>
       headers.map((header) => this.escapeCsvValue(record[header])).join(','),

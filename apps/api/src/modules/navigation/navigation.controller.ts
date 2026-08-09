@@ -3,12 +3,18 @@ import { GetRoutesDto } from './dto/get-routes.dto';
 import { CreateRouteSelectionDto } from './dto/create-route-selection.dto';
 import { NavigationService, type WalkingRoute } from './navigation.service';
 import { RouteSelectionService } from './route-selection.service';
+import { SupervisedTrainingDatasetService } from './supervised-training-dataset.service';
+import { AITrainingDatasetService } from './ai-training-dataset.service';
+import { TrainingDatasetStatsService } from './training-dataset-stats.service';
 
 @Controller('navigation')
 export class NavigationController {
   constructor(
     private readonly navigationService: NavigationService,
     private readonly routeSelectionService: RouteSelectionService,
+    private readonly supervisedTrainingDatasetService: SupervisedTrainingDatasetService,
+    private readonly aiTrainingDatasetService: AITrainingDatasetService,
+    private readonly trainingDatasetStatsService: TrainingDatasetStatsService,
   ) {}
 
   @Get('routes')
@@ -19,6 +25,24 @@ export class NavigationController {
   @Post('route-selections')
   recordRouteSelection(@Body() body: CreateRouteSelectionDto) {
     return this.routeSelectionService.recordSelection(body);
+  }
+
+  @Get('training-dataset-stats')
+  getTrainingDatasetStats() {
+    return this.trainingDatasetStatsService.getStats();
+  }
+
+  @Get('supervised-training-records')
+  getSupervisedTrainingRecords() {
+    return this.supervisedTrainingDatasetService.getRecords();
+  }
+
+  @Get('supervised-training-records.csv')
+  @Header('Content-Type', 'text/csv; charset=utf-8')
+  async getSupervisedTrainingRecordsCsv(): Promise<string> {
+    const records = await this.supervisedTrainingDatasetService.getRecords();
+
+    return this.aiTrainingDatasetService.toCsv(records);
   }
 
   @Get('training-records')

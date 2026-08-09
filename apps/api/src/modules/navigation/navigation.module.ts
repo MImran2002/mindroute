@@ -13,11 +13,17 @@ import { RouteComparisonRowService } from './route-comparison-row.service';
 import { AITrainingDatasetService } from './ai-training-dataset.service';
 import { AITrainingRecordService } from './ai-training-record.service';
 import { AITrainingStorageService } from './ai-training-storage.service';
+import { SupervisedTrainingDatasetService } from './supervised-training-dataset.service';
+import { TrainingDatasetStatsService } from './training-dataset-stats.service';
+import { RouteCandidateGeneratorService } from './route-candidate-generator.service';
 
 @Module({
   controllers: [NavigationController],
 
   providers: [
+    RouteCandidateGeneratorService,
+    TrainingDatasetStatsService,
+    SupervisedTrainingDatasetService,
     RouteSelectionService,
     AITrainingDatasetService,
     AITrainingRecordService,
