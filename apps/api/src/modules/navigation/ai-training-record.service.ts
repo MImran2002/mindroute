@@ -6,6 +6,14 @@ import type { RouteRecommendation } from './interfaces/route-recommendation.inte
 import type { RouteScore } from './interfaces/route-score.interface';
 
 interface CreateAITrainingRecordInput {
+  requestId: string;
+  capturedAt: string;
+
+  originLat: number;
+  originLng: number;
+  destinationLat: number;
+  destinationLng: number;
+
   comparisonRow: RouteComparisonRow;
   score: RouteScore;
   rank: number;
@@ -15,10 +23,29 @@ interface CreateAITrainingRecordInput {
 @Injectable()
 export class AITrainingRecordService {
   createRecord(input: CreateAITrainingRecordInput): AITrainingRecord {
-    const { comparisonRow, score, rank, recommendation } = input;
+    const {
+      requestId,
+      capturedAt,
+      originLat,
+      originLng,
+      destinationLat,
+      destinationLng,
+      comparisonRow,
+      score,
+      rank,
+      recommendation,
+    } = input;
 
     return {
-      schemaVersion: '1.0',
+      schemaVersion: '1.2',
+
+      requestId,
+      capturedAt,
+
+      originLat,
+      originLng,
+      destinationLat,
+      destinationLng,
 
       routeId: comparisonRow.routeId,
       rank,

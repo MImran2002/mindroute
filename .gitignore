@@ -9,3 +9,12 @@ coverage/
 .DS_Store
 *.log
 .vercel/
+
+# Local MindRoute AI training dataset
+data/ai-training-records.jsonl
+
+# MindRoute locally collected AI training data
+apps/api/data/ai-training-records.jsonl
+
+# Locally collected MindRoute user route choices
+apps/api/data/ai-route-selections.jsonl

@@ -5,10 +5,12 @@ import {
   ServiceUnavailableException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { randomUUID } from 'node:crypto';
 
 import type { GetRoutesDto } from './dto/get-routes.dto';
 import { AITrainingDatasetService } from './ai-training-dataset.service';
 import { AITrainingRecordService } from './ai-training-record.service';
+import { AITrainingStorageService } from './ai-training-storage.service';
 import { EnvironmentalAggregationService } from './environmental-aggregation.service';
 import type { AITrainingRecord } from './interfaces/ai-training-record.interface';
 import type {
@@ -78,12 +80,16 @@ export class NavigationService {
     private readonly routeRecommendationService: RouteRecommendationService,
     private readonly aiTrainingRecordService: AITrainingRecordService,
     private readonly aiTrainingDatasetService: AITrainingDatasetService,
+    private readonly aiTrainingStorageService: AITrainingStorageService,
     private readonly environmentalAggregationService: EnvironmentalAggregationService,
     private readonly openStreetMapEnvironmentalProvider: OpenStreetMapEnvironmentalProvider,
     private readonly mockEnvironmentalProvider: MockEnvironmentalProvider,
   ) {}
 
   async getWalkingRoutes(input: GetRoutesDto): Promise<WalkingRoute[]> {
+    const requestId = randomUUID();
+    const capturedAt = new Date().toISOString();
+
     const token = this.config.get<string>('mapbox.accessToken');
 
     if (!token) {
@@ -236,15 +242,27 @@ export class NavigationService {
     const recommendedRoutes =
       this.routeRecommendationService.assignRecommendations(rankedRoutes);
 
-    return recommendedRoutes.map((route) => ({
+    const routesWithTrainingRecords = recommendedRoutes.map((route) => ({
       ...route,
       trainingRecord: this.aiTrainingRecordService.createRecord({
+        requestId,
+        capturedAt,
+        originLat: input.originLat,
+        originLng: input.originLng,
+        destinationLat: input.destinationLat,
+        destinationLng: input.destinationLng,
         comparisonRow: route.comparisonRow,
         score: route.score,
         rank: route.rank,
         recommendation: route.recommendation!,
       }),
     }));
+
+    await this.aiTrainingStorageService.appendRecords(
+      routesWithTrainingRecords.map((route) => route.trainingRecord),
+    );
+
+    return routesWithTrainingRecords;
   }
 
   async getAITrainingRecords(input: GetRoutesDto): Promise<AITrainingRecord[]> {
