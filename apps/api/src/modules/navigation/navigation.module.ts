@@ -9,11 +9,15 @@ import { RouteFeatureExtractorService } from './route-feature-extractor.service'
 import { RouteSamplingService } from './route-sampling.service';
 import { RouteBaselineScorerService } from './route-baseline-scorer.service';
 import { RouteComparisonRowService } from './route-comparison-row.service';
+import { AITrainingDatasetService } from './ai-training-dataset.service';
+import { AITrainingRecordService } from './ai-training-record.service';
 
 @Module({
   controllers: [NavigationController],
 
   providers: [
+    AITrainingDatasetService,
+    AITrainingRecordService,
     RouteRecommendationService,
     RouteBaselineScorerService,
     RouteComparisonRowService,

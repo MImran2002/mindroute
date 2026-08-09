@@ -7,7 +7,10 @@ import {
 import { ConfigService } from '@nestjs/config';
 
 import type { GetRoutesDto } from './dto/get-routes.dto';
+import { AITrainingDatasetService } from './ai-training-dataset.service';
+import { AITrainingRecordService } from './ai-training-record.service';
 import { EnvironmentalAggregationService } from './environmental-aggregation.service';
+import type { AITrainingRecord } from './interfaces/ai-training-record.interface';
 import type {
   CandidateRoute,
   MapboxDirectionsResponse,
@@ -52,6 +55,7 @@ export interface WalkingRoute {
   comparisonRow: RouteComparisonRow;
   score: RouteScore;
   recommendation?: RouteRecommendation;
+  trainingRecord?: AITrainingRecord;
 
   samples: RouteSamplePoint[];
   sampleEnvironments: RouteSampleEnvironment[];
@@ -72,6 +76,8 @@ export class NavigationService {
     private readonly routeComparisonRowService: RouteComparisonRowService,
     private readonly routeBaselineScorerService: RouteBaselineScorerService,
     private readonly routeRecommendationService: RouteRecommendationService,
+    private readonly aiTrainingRecordService: AITrainingRecordService,
+    private readonly aiTrainingDatasetService: AITrainingDatasetService,
     private readonly environmentalAggregationService: EnvironmentalAggregationService,
     private readonly openStreetMapEnvironmentalProvider: OpenStreetMapEnvironmentalProvider,
     private readonly mockEnvironmentalProvider: MockEnvironmentalProvider,
@@ -227,7 +233,32 @@ export class NavigationService {
         rank: index + 1,
       }));
 
-    return this.routeRecommendationService.assignRecommendations(rankedRoutes);
+    const recommendedRoutes =
+      this.routeRecommendationService.assignRecommendations(rankedRoutes);
+
+    return recommendedRoutes.map((route) => ({
+      ...route,
+      trainingRecord: this.aiTrainingRecordService.createRecord({
+        comparisonRow: route.comparisonRow,
+        score: route.score,
+        rank: route.rank,
+        recommendation: route.recommendation!,
+      }),
+    }));
+  }
+
+  async getAITrainingRecords(input: GetRoutesDto): Promise<AITrainingRecord[]> {
+    const routes = await this.getWalkingRoutes(input);
+
+    return routes
+      .map((route) => route.trainingRecord)
+      .filter((record): record is AITrainingRecord => record !== undefined);
+  }
+
+  async getAITrainingRecordsCsv(input: GetRoutesDto): Promise<string> {
+    const records = await this.getAITrainingRecords(input);
+
+    return this.aiTrainingDatasetService.toCsv(records);
   }
 
   private normalizeCandidateRoute(

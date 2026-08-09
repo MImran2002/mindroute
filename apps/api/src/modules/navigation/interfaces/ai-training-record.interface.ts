@@ -1,0 +1,55 @@
+import type { EnvironmentalDataStatus } from './environmental-observation.interface';
+import type { RouteRecommendationLabel } from './route-recommendation.interface';
+
+export interface AITrainingRecord {
+  schemaVersion: '1.0';
+
+  routeId: string;
+  rank: number;
+
+  // Basic route information
+  distanceMeters: number;
+  durationSeconds: number;
+  detourPercent: number;
+
+  // Navigation complexity
+  turnCount: number;
+  sharpTurnCount: number;
+  decisionPointCount: number;
+  instructionDensityPerKm: number;
+  averageSegmentLengthMeters: number;
+  shortSegmentCount: number;
+  routeStraightness: number;
+
+  // Crossing complexity
+  crossingCount: number;
+  signalizedCrossingCount: number;
+  unsignalizedCrossingCount: number;
+  complexIntersectionCount: number;
+  crossingComplexity: number;
+
+  // Environmental features
+  estimatedShadeExposure: number;
+  greeneryExposure: number;
+  parkExposure: number;
+  pedestrianDensity: number;
+  trafficExposure: number;
+  noiseExposure: number;
+  commercialActivityExposure: number;
+  constructionExposure: number;
+  eventExposure: number;
+  pointOfInterestDensity: number;
+
+  dataConfidence: number;
+  environmentalDataStatus: EnvironmentalDataStatus;
+
+  // Baseline-generated weak labels.
+  // Later these can be supplemented/replaced by real user feedback.
+  baselineCognitiveLoadScore: number;
+  baselineComfortScore: number;
+  baselineFinalScore: number;
+
+  recommendationLabel: RouteRecommendationLabel;
+
+  labelSource: 'baseline-v1';
+}
