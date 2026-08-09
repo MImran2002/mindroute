@@ -1,0 +1,1 @@
+{"requestId":"65558765-906c-4f7c-8fd6-dcf25b4213ea","capturedAt":"2026-08-09T03:17:02.995Z","plansAttempted":3,"providerSuccesses":3,"providerFailures":0,"routesBeforeDeduplication":3,"routesAfterDeduplication":2,"duplicatesRemoved":1,"survivingCandidateSources":["direct","left-offset"]}

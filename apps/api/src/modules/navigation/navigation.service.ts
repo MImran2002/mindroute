@@ -7,6 +7,8 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { randomUUID } from 'node:crypto';
 
+import type { NavigationRoutesResponse } from './interfaces/navigation-routes-response.interface';
+
 import type { GetRoutesDto } from './dto/get-routes.dto';
 import { AITrainingDatasetService } from './ai-training-dataset.service';
 import { AITrainingRecordService } from './ai-training-record.service';
@@ -17,6 +19,7 @@ import type {
   CandidateRoute,
   MapboxDirectionsResponse,
   MapboxRoute,
+  RouteCandidateSource,
   RouteStep,
 } from './interfaces/candidate-route.interface';
 import type {
@@ -36,9 +39,15 @@ import { RouteComparisonRowService } from './route-comparison-row.service';
 import { RouteRecommendationService } from './route-recommendation.service';
 import { RouteFeatureExtractorService } from './route-feature-extractor.service';
 import { RouteSamplingService } from './route-sampling.service';
+import {
+  RouteCandidateGeneratorService,
+  type RouteCandidatePlan,
+} from './route-candidate-generator.service';
+import { RouteGenerationDiagnosticsService } from './route-generation-diagnostics.service';
 
 export interface WalkingRoute {
   id: string;
+  candidateSource: RouteCandidateSource;
   rank: number;
 
   distanceMeters: number;
@@ -78,6 +87,8 @@ export class NavigationService {
     private readonly routeComparisonRowService: RouteComparisonRowService,
     private readonly routeBaselineScorerService: RouteBaselineScorerService,
     private readonly routeRecommendationService: RouteRecommendationService,
+    private readonly routeCandidateGeneratorService: RouteCandidateGeneratorService,
+    private readonly routeGenerationDiagnosticsService: RouteGenerationDiagnosticsService,
     private readonly aiTrainingRecordService: AITrainingRecordService,
     private readonly aiTrainingDatasetService: AITrainingDatasetService,
     private readonly aiTrainingStorageService: AITrainingStorageService,
@@ -86,7 +97,9 @@ export class NavigationService {
     private readonly mockEnvironmentalProvider: MockEnvironmentalProvider,
   ) {}
 
-  async getWalkingRoutes(input: GetRoutesDto): Promise<WalkingRoute[]> {
+  async getWalkingRoutes(
+    input: GetRoutesDto,
+  ): Promise<NavigationRoutesResponse> {
     const requestId = randomUUID();
     const capturedAt = new Date().toISOString();
 
@@ -96,46 +109,48 @@ export class NavigationService {
       throw new ServiceUnavailableException('Mapbox is not configured');
     }
 
-    const coordinates =
-      `${input.originLng},${input.originLat};` +
-      `${input.destinationLng},${input.destinationLat}`;
+    const candidatePlans = this.routeCandidateGeneratorService.generate(input);
 
-    const params = new URLSearchParams({
-      access_token: token,
-      alternatives: 'true',
-      geometries: 'geojson',
-      overview: 'full',
-      steps: 'true',
-      language: 'en',
-      annotations: 'distance,duration',
-    });
+    const candidateResults = await Promise.all(
+      candidatePlans.map((plan) => this.fetchCandidateRoute(plan, token)),
+    );
 
-    let response: Response;
+    const providerSuccesses = candidateResults.filter(
+      (result) => result !== null,
+    ).length;
 
-    try {
-      response = await fetch(
-        `https://api.mapbox.com/directions/v5/mapbox/walking/${coordinates}?${params.toString()}`,
-        {
-          signal: AbortSignal.timeout(10000),
-        },
-      );
-    } catch {
-      throw new BadGatewayException('Unable to reach the routing provider');
-    }
+    const providerFailures = candidatePlans.length - providerSuccesses;
 
-    if (!response.ok) {
-      throw new BadGatewayException('Walking route request failed');
-    }
+    const validCandidateResults = candidateResults.filter(
+      (
+        result,
+      ): result is {
+        route: MapboxRoute;
+        candidateSource: RouteCandidateSource;
+      } => result !== null,
+    );
 
-    const data = (await response.json()) as MapboxDirectionsResponse;
-
-    if (!data.routes?.length) {
+    if (validCandidateResults.length === 0) {
       throw new NotFoundException('No walking routes were found');
     }
 
-    const candidateRoutes = data.routes
-      .slice(0, 3)
-      .map((route, index) => this.normalizeCandidateRoute(route, index));
+    const normalizedCandidateRoutes = validCandidateResults.map(
+      (result, index) =>
+        this.normalizeCandidateRoute(
+          result.route,
+          index,
+          result.candidateSource,
+        ),
+    );
+
+    const deduplicatedCandidateRoutes = this.deduplicateCandidateRoutes(
+      normalizedCandidateRoutes,
+    );
+
+    const candidateRoutes = deduplicatedCandidateRoutes.map((route, index) => ({
+      ...route,
+      id: `route-${index + 1}`,
+    }));
 
     const fastestDurationSeconds = Math.min(
       ...candidateRoutes.map((route) => route.durationSeconds),
@@ -203,6 +218,7 @@ export class NavigationService {
 
         return {
           id: route.id,
+          candidateSource: route.candidateSource,
           rank: 0,
 
           distanceMeters: route.distanceMeters,
@@ -251,6 +267,7 @@ export class NavigationService {
         originLng: input.originLng,
         destinationLat: input.destinationLat,
         destinationLng: input.destinationLng,
+        candidateSource: route.candidateSource,
         comparisonRow: route.comparisonRow,
         score: route.score,
         rank: route.rank,
@@ -262,13 +279,39 @@ export class NavigationService {
       routesWithTrainingRecords.map((route) => route.trainingRecord),
     );
 
-    return routesWithTrainingRecords;
+    await this.routeGenerationDiagnosticsService.appendRecord({
+      requestId,
+      capturedAt,
+      plansAttempted: candidatePlans.length,
+      providerSuccesses,
+      providerFailures,
+      routesBeforeDeduplication: normalizedCandidateRoutes.length,
+      routesAfterDeduplication: deduplicatedCandidateRoutes.length,
+      duplicatesRemoved:
+        normalizedCandidateRoutes.length - deduplicatedCandidateRoutes.length,
+      survivingCandidateSources: deduplicatedCandidateRoutes.map(
+        (route) => route.candidateSource,
+      ),
+    });
+
+    return {
+      routes: routesWithTrainingRecords,
+      diagnostics: {
+        plansAttempted: candidatePlans.length,
+        providerSuccesses,
+        providerFailures,
+        routesBeforeDeduplication: normalizedCandidateRoutes.length,
+        routesAfterDeduplication: deduplicatedCandidateRoutes.length,
+        duplicatesRemoved:
+          normalizedCandidateRoutes.length - deduplicatedCandidateRoutes.length,
+      },
+    };
   }
 
   async getAITrainingRecords(input: GetRoutesDto): Promise<AITrainingRecord[]> {
-    const routes = await this.getWalkingRoutes(input);
+    const result = await this.getWalkingRoutes(input);
 
-    return routes
+    return result.routes
       .map((route) => route.trainingRecord)
       .filter((record): record is AITrainingRecord => record !== undefined);
   }
@@ -279,9 +322,124 @@ export class NavigationService {
     return this.aiTrainingDatasetService.toCsv(records);
   }
 
+  private async fetchCandidateRoute(
+    plan: RouteCandidatePlan,
+    token: string,
+  ): Promise<{
+    route: MapboxRoute;
+    candidateSource: RouteCandidateSource;
+  } | null> {
+    const coordinates = plan.coordinates
+      .map(([lng, lat]) => `${lng},${lat}`)
+      .join(';');
+
+    const params = new URLSearchParams({
+      access_token: token,
+      alternatives: 'false',
+      geometries: 'geojson',
+      overview: 'full',
+      steps: 'true',
+      language: 'en',
+      annotations: 'distance,duration',
+    });
+
+    if (plan.coordinates.length > 2) {
+      params.set('waypoints', plan.waypointIndexes.join(';'));
+    }
+
+    let response: Response;
+
+    try {
+      response = await fetch(
+        `https://api.mapbox.com/directions/v5/mapbox/walking/${coordinates}?${params.toString()}`,
+        {
+          signal: AbortSignal.timeout(10000),
+        },
+      );
+    } catch {
+      return null;
+    }
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const data = (await response.json()) as MapboxDirectionsResponse;
+
+    const route = data.routes?.[0];
+
+    if (!route) {
+      return null;
+    }
+
+    return {
+      route,
+      candidateSource: plan.id,
+    };
+  }
+
+  private deduplicateCandidateRoutes(
+    routes: CandidateRoute[],
+  ): CandidateRoute[] {
+    const uniqueRoutes: CandidateRoute[] = [];
+
+    for (const candidate of routes) {
+      const isDuplicate = uniqueRoutes.some((existing) =>
+        this.areRoutesGeometricallySimilar(existing, candidate),
+      );
+
+      if (!isDuplicate) {
+        uniqueRoutes.push(candidate);
+      }
+    }
+
+    return uniqueRoutes;
+  }
+
+  private areRoutesGeometricallySimilar(
+    first: CandidateRoute,
+    second: CandidateRoute,
+  ): boolean {
+    const firstPoints = this.createRoundedGeometrySet(first);
+    const secondPoints = this.createRoundedGeometrySet(second);
+
+    if (firstPoints.size === 0 || secondPoints.size === 0) {
+      return false;
+    }
+
+    let sharedPoints = 0;
+
+    for (const point of firstPoints) {
+      if (secondPoints.has(point)) {
+        sharedPoints += 1;
+      }
+    }
+
+    const smallerRoutePointCount = Math.min(
+      firstPoints.size,
+      secondPoints.size,
+    );
+
+    const overlapRatio = sharedPoints / smallerRoutePointCount;
+
+    return overlapRatio >= 0.8;
+  }
+
+  private createRoundedGeometrySet(route: CandidateRoute): Set<string> {
+    return new Set(
+      route.geometry.coordinates.map(([lng, lat]) => {
+        const roundedLng = lng.toFixed(4);
+        const roundedLat = lat.toFixed(4);
+
+        return `${roundedLng},${roundedLat}`;
+      }),
+    );
+  }
+
   private normalizeCandidateRoute(
     route: MapboxRoute,
     index: number,
+    candidateSource: RouteCandidateSource,
   ): CandidateRoute {
     const steps = (route.legs ?? []).flatMap((leg) =>
       (leg.steps ?? []).map<RouteStep>((step) => ({
@@ -310,6 +468,7 @@ export class NavigationService {
 
     return {
       id: `route-${index + 1}`,
+      candidateSource,
       distanceMeters: route.distance,
       durationSeconds: route.duration,
       geometry: route.geometry,

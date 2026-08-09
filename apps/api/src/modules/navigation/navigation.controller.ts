@@ -1,4 +1,5 @@
 import { Body, Controller, Get, Header, Post, Query } from '@nestjs/common';
+import type { NavigationRoutesResponse } from './interfaces/navigation-routes-response.interface';
 import { GetRoutesDto } from './dto/get-routes.dto';
 import { CreateRouteSelectionDto } from './dto/create-route-selection.dto';
 import { NavigationService, type WalkingRoute } from './navigation.service';
@@ -18,7 +19,7 @@ export class NavigationController {
   ) {}
 
   @Get('routes')
-  getRoutes(@Query() query: GetRoutesDto): Promise<WalkingRoute[]> {
+  getRoutes(@Query() query: GetRoutesDto): Promise<NavigationRoutesResponse> {
     return this.navigationService.getWalkingRoutes(query);
   }
 

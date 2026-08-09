@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
 import type { AITrainingRecord } from './interfaces/ai-training-record.interface';
+import type { RouteCandidateSource } from './interfaces/candidate-route.interface';
 import type { RouteComparisonRow } from './interfaces/route-comparison-row.interface';
 import type { RouteRecommendation } from './interfaces/route-recommendation.interface';
 import type { RouteScore } from './interfaces/route-score.interface';
@@ -14,6 +15,7 @@ interface CreateAITrainingRecordInput {
   destinationLat: number;
   destinationLng: number;
 
+  candidateSource: RouteCandidateSource;
   comparisonRow: RouteComparisonRow;
   score: RouteScore;
   rank: number;
@@ -30,6 +32,7 @@ export class AITrainingRecordService {
       originLng,
       destinationLat,
       destinationLng,
+      candidateSource,
       comparisonRow,
       score,
       rank,
@@ -37,7 +40,7 @@ export class AITrainingRecordService {
     } = input;
 
     return {
-      schemaVersion: '1.2',
+      schemaVersion: '1.3',
 
       requestId,
       capturedAt,
@@ -48,6 +51,7 @@ export class AITrainingRecordService {
       destinationLng,
 
       routeId: comparisonRow.routeId,
+      candidateSource,
       rank,
 
       distanceMeters: comparisonRow.distanceMeters,
