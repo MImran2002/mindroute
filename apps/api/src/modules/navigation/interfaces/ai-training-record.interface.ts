@@ -1,9 +1,12 @@
-import type { EnvironmentalDataStatus } from './environmental-observation.interface';
+import type {
+  EnvironmentalRetrievalSource,
+  EnvironmentalDataStatus,
+} from './environmental-observation.interface';
 import type { RouteCandidateSource } from './candidate-route.interface';
 import type { RouteRecommendationLabel } from './route-recommendation.interface';
 
 export interface AITrainingRecord {
-  schemaVersion: '1.3';
+  schemaVersion: '1.4';
 
   requestId: string;
   capturedAt: string;
@@ -52,6 +55,7 @@ export interface AITrainingRecord {
 
   dataConfidence: number;
   environmentalDataStatus: EnvironmentalDataStatus;
+  environmentalRetrievalSource?: EnvironmentalRetrievalSource;
 
   // Baseline-generated weak labels.
   // Later these can be supplemented/replaced by real user feedback.

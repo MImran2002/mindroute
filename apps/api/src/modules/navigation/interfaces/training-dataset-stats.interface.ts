@@ -7,6 +7,7 @@ export interface TrainingDatasetStats {
   notSelectedExamples: number;
 
   liveEnvironmentalRecords: number;
+  cachedEnvironmentalRecords: number;
   fallbackEnvironmentalRecords: number;
 
   selectedRankOneCount: number;
@@ -15,4 +16,12 @@ export interface TrainingDatasetStats {
   averageCandidatesPerLabeledRequest: number;
 
   recommendationCounts: Record<string, number>;
+
+  baselineTrainingReady: boolean;
+  baselineTrainingReadinessReasons: string[];
+
+  labeledRequestTarget: number;
+  labeledRequestProgress: number;
+
+  fallbackEnvironmentalShare: number;
 }

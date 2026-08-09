@@ -16,12 +16,23 @@ export class TrainingDatasetStatsService {
 
     const selectedRecords = records.filter((record) => record.selected === 1);
 
-    const fallbackEnvironmentalRecords = records.filter(
-      (record) => record.environmentalDataStatus === 'fallback',
+    const liveEnvironmentalRecords = records.filter(
+      (record) =>
+        record.environmentalRetrievalSource === 'live' ||
+        (record.environmentalRetrievalSource === undefined &&
+          record.environmentalDataStatus !== 'fallback'),
     ).length;
 
-    const liveEnvironmentalRecords =
-      records.length - fallbackEnvironmentalRecords;
+    const cachedEnvironmentalRecords = records.filter(
+      (record) => record.environmentalRetrievalSource === 'cache',
+    ).length;
+
+    const fallbackEnvironmentalRecords = records.filter(
+      (record) =>
+        record.environmentalRetrievalSource === 'fallback' ||
+        (record.environmentalRetrievalSource === undefined &&
+          record.environmentalDataStatus === 'fallback'),
+    ).length;
 
     const selectedRankOneCount = selectedRecords.filter(
       (record) => record.rank === 1,
@@ -43,6 +54,45 @@ export class TrainingDatasetStatsService {
         ? 0
         : Number((records.length / requestIds.size).toFixed(2));
 
+    const labeledRequestTarget = 50;
+
+    const labeledRequestProgress = Number(
+      Math.min(requestIds.size / labeledRequestTarget, 1).toFixed(2),
+    );
+
+    const fallbackEnvironmentalShare =
+      records.length === 0
+        ? 0
+        : Number((fallbackEnvironmentalRecords / records.length).toFixed(4));
+
+    const baselineTrainingReadinessReasons: string[] = [];
+
+    if (requestIds.size < labeledRequestTarget) {
+      baselineTrainingReadinessReasons.push(
+        `Need at least ${labeledRequestTarget} labeled requests; currently ${requestIds.size}.`,
+      );
+    }
+
+    if (averageCandidatesPerLabeledRequest < 2) {
+      baselineTrainingReadinessReasons.push(
+        'Need at least 2 candidate routes per labeled request on average.',
+      );
+    }
+
+    if (selectedNonRankOneCount < 5) {
+      baselineTrainingReadinessReasons.push(
+        `Need at least 5 non-rank-one user selections; currently ${selectedNonRankOneCount}.`,
+      );
+    }
+
+    if (fallbackEnvironmentalShare > 0.5) {
+      baselineTrainingReadinessReasons.push(
+        `Fallback environmental data is ${(fallbackEnvironmentalShare * 100).toFixed(1)}%; target is 50% or less.`,
+      );
+    }
+
+    const baselineTrainingReady = baselineTrainingReadinessReasons.length === 0;
+
     return {
       totalTrainingRecords: records.length,
       totalLabeledRecords: records.length,
@@ -52,6 +102,7 @@ export class TrainingDatasetStatsService {
       notSelectedExamples: records.length - selectedRecords.length,
 
       liveEnvironmentalRecords,
+      cachedEnvironmentalRecords,
       fallbackEnvironmentalRecords,
 
       selectedRankOneCount,
@@ -60,6 +111,14 @@ export class TrainingDatasetStatsService {
       averageCandidatesPerLabeledRequest,
 
       recommendationCounts,
+
+      baselineTrainingReady,
+      baselineTrainingReadinessReasons,
+
+      labeledRequestTarget,
+      labeledRequestProgress,
+
+      fallbackEnvironmentalShare,
     };
   }
 }
