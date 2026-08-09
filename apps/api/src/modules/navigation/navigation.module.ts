@@ -5,19 +5,23 @@ import { NavigationService } from './navigation.service';
 import { MockEnvironmentalProvider } from './providers/mock-environmental.provider';
 import { OpenStreetMapEnvironmentalProvider } from './providers/openstreetmap-environmental.provider';
 import { RouteRecommendationService } from './route-recommendation.service';
+import { RouteSelectionService } from './route-selection.service';
 import { RouteFeatureExtractorService } from './route-feature-extractor.service';
 import { RouteSamplingService } from './route-sampling.service';
 import { RouteBaselineScorerService } from './route-baseline-scorer.service';
 import { RouteComparisonRowService } from './route-comparison-row.service';
 import { AITrainingDatasetService } from './ai-training-dataset.service';
 import { AITrainingRecordService } from './ai-training-record.service';
+import { AITrainingStorageService } from './ai-training-storage.service';
 
 @Module({
   controllers: [NavigationController],
 
   providers: [
+    RouteSelectionService,
     AITrainingDatasetService,
     AITrainingRecordService,
+    AITrainingStorageService,
     RouteRecommendationService,
     RouteBaselineScorerService,
     RouteComparisonRowService,

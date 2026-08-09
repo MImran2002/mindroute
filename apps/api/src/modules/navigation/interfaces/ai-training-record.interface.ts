@@ -2,7 +2,15 @@ import type { EnvironmentalDataStatus } from './environmental-observation.interf
 import type { RouteRecommendationLabel } from './route-recommendation.interface';
 
 export interface AITrainingRecord {
-  schemaVersion: '1.0';
+  schemaVersion: '1.2';
+
+  requestId: string;
+  capturedAt: string;
+
+  originLat: number;
+  originLng: number;
+  destinationLat: number;
+  destinationLng: number;
 
   routeId: string;
   rank: number;
