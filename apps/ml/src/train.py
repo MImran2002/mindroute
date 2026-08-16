@@ -8,27 +8,27 @@ import pandas as pd
 import requests
 from xgboost import XGBRanker
 
+try:
+    from .feature_engineering import (
+        FEATURE_COLUMNS,
+        RELATIVE_FEATURE_COLUMNS,
+        MODEL_FEATURE_COLUMNS,
+        add_request_relative_features,
+    )
+except ImportError:
+    from feature_engineering import (
+        FEATURE_COLUMNS,
+        RELATIVE_FEATURE_COLUMNS,
+        MODEL_FEATURE_COLUMNS,
+        add_request_relative_features,
+    )
+
 
 API_URL = (
     "http://localhost:3001/api/navigation/trainable-records"
 )
 
 CURRENT_SCHEMA = "2.0"
-
-FEATURE_COLUMNS = [
-    "distanceMeters",
-    "durationSeconds",
-    "estimatedShadeExposure",
-    "greeneryExposure",
-    "parkExposure",
-    "pedestrianDensity",
-    "trafficExposure",
-    "noiseExposure",
-    "commercialActivityExposure",
-    "constructionExposure",
-    "pointOfInterestDensity",
-    "crossingComplexity",
-]
 
 MODEL_PATH = Path(
     "apps/ml/models/mindroute-ranker.json"
@@ -90,7 +90,9 @@ def build_dataframe(
             "No schema 2.0 trainable records were found."
         )
 
-    return frame
+    return add_request_relative_features(
+        frame
+    )
 
 
 def validate_requests(
@@ -133,7 +135,7 @@ def prepare_training_data(
     )
 
     X = frame[
-        FEATURE_COLUMNS
+        MODEL_FEATURE_COLUMNS
     ].astype(float)
 
     y = frame["selected"].to_numpy(
@@ -276,7 +278,9 @@ def save_model(
 
     metadata = {
         "schemaVersion": CURRENT_SCHEMA,
-        "featureColumns": FEATURE_COLUMNS,
+        "featureColumns": MODEL_FEATURE_COLUMNS,
+        "absoluteFeatureColumns": FEATURE_COLUMNS,
+        "relativeFeatureColumns": RELATIVE_FEATURE_COLUMNS,
         "trainableRequests": int(
             frame["requestId"].nunique()
         ),
@@ -330,7 +334,7 @@ def main() -> None:
     )
     print(
         "Features:",
-        len(FEATURE_COLUMNS),
+        len(MODEL_FEATURE_COLUMNS),
     )
 
     model = train_model(

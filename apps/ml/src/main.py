@@ -8,6 +8,19 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 from xgboost import XGBRanker
 
+try:
+    from .feature_engineering import (
+        FEATURE_COLUMNS,
+        MODEL_FEATURE_COLUMNS,
+        add_request_relative_features,
+    )
+except ImportError:
+    from feature_engineering import (
+        FEATURE_COLUMNS,
+        MODEL_FEATURE_COLUMNS,
+        add_request_relative_features,
+    )
+
 
 MODEL_PATH = Path(
     "apps/ml/models/mindroute-ranker.json"
@@ -17,21 +30,6 @@ METADATA_PATH = Path(
     "apps/ml/models/mindroute-ranker-metadata.json"
 )
 
-
-FEATURE_COLUMNS = [
-    "distanceMeters",
-    "durationSeconds",
-    "estimatedShadeExposure",
-    "greeneryExposure",
-    "parkExposure",
-    "pedestrianDensity",
-    "trafficExposure",
-    "noiseExposure",
-    "commercialActivityExposure",
-    "constructionExposure",
-    "pointOfInterestDensity",
-    "crossingComplexity",
-]
 
 
 class RouteFeatures(BaseModel):
@@ -158,18 +156,30 @@ def rank_routes(
 
         rows.append(
             {
-                feature: route_data[feature]
-                for feature in FEATURE_COLUMNS
+                "requestId": request.requestId,
+                **{
+                    feature: route_data[feature]
+                    for feature in FEATURE_COLUMNS
+                },
             }
         )
 
     frame = pd.DataFrame(
-        rows,
-        columns=FEATURE_COLUMNS,
+        rows
     )
 
+    frame = add_request_relative_features(
+        frame
+    )
+
+    model_frame = frame[
+        MODEL_FEATURE_COLUMNS
+    ].astype(float)
+
     try:
-        scores = model.predict(frame)
+        scores = model.predict(
+            model_frame
+        )
     except Exception as error:
         raise HTTPException(
             status_code=500,
