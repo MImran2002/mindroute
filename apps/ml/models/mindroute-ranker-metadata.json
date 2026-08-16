@@ -57,11 +57,38 @@
   "trainableRequests": 76,
   "trainingRows": 197,
   "selectedRows": 76,
-  "productionReady": false,
+  "productionReady": true,
   "minimumRecommendedRequests": 50,
   "notes": [
     "Initial MindRoute learning-to-rank model.",
     "Not production-ready with current dataset size.",
     "eventExposure intentionally excluded because it has no variation."
-  ]
+  ],
+  "productionReadiness": {
+    "checks": {
+      "schemaMatches": true,
+      "minimumTrainableRequests": true,
+      "requestHoldoutAccuracy": true,
+      "tripHoldoutAccuracy": true,
+      "beatsBaseline": true,
+      "tripTieRate": true,
+      "tripNdcg": true
+    },
+    "failedChecks": [],
+    "thresholds": {
+      "minimumTrainableRequests": 50,
+      "minimumRequestHoldoutAccuracy": 0.75,
+      "minimumTripHoldoutAccuracy": 0.65,
+      "maximumTripHoldoutTieRate": 0.1,
+      "minimumTripHoldoutNdcg": 0.8
+    },
+    "metrics": {
+      "trainableRequests": 76,
+      "requestHoldoutAccuracy": 0.9342105263157895,
+      "tripHoldoutAccuracy": 0.7631578947368421,
+      "baselineAccuracy": 0.5789473684210527,
+      "tripHoldoutTieRate": 0.0,
+      "tripHoldoutNdcg": 0.9039748262688019
+    }
+  }
 }
