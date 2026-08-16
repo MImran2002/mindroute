@@ -1,4 +1,11 @@
 import { BadGatewayException, Injectable, Logger } from '@nestjs/common';
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  writeFileSync,
+} from 'node:fs';
+import { dirname, join } from 'node:path';
 import type {
   EnvironmentalFeatureType,
   EnvironmentalObservation,
@@ -20,15 +27,35 @@ interface BoundingBox {
   east: number;
 }
 
+export interface EnvironmentalRetrievalDiagnostics {
+  sampleCount: number;
+  groupCount: number;
+  liveGroups: number;
+  cacheGroups: number;
+  fallbackGroups: number;
+  fallbackReasons: string[];
+  durationMs: number;
+}
+
 @Injectable()
 export class OpenStreetMapEnvironmentalProvider implements EnvironmentalProvider {
   constructor(
     private readonly mockEnvironmentalProvider: MockEnvironmentalProvider,
   ) {}
 
-  private readonly cacheTtlMs = 5 * 60 * 1000;
+  private readonly cacheTtlMs = 30 * 60 * 1000;
 
   private lastDataSource: 'live' | 'cache' | 'mixed' | 'fallback' = 'live';
+
+  private lastRetrievalDiagnostics: EnvironmentalRetrievalDiagnostics = {
+    sampleCount: 0,
+    groupCount: 0,
+    liveGroups: 0,
+    cacheGroups: 0,
+    fallbackGroups: 0,
+    fallbackReasons: [],
+    durationMs: 0,
+  };
 
   private readonly elementCache = new Map<
     string,
@@ -38,9 +65,22 @@ export class OpenStreetMapEnvironmentalProvider implements EnvironmentalProvider
     }
   >();
 
+  private readonly persistentCacheTtlMs =
+    24 * 60 * 60 * 1000;
+
+  private readonly persistentCachePath = join(
+    process.cwd(),
+    'data',
+    'osm-environment-cache.json',
+  );
+
+  private persistentCacheLoaded = false;
+
   private readonly logger = new Logger(OpenStreetMapEnvironmentalProvider.name);
 
-  private readonly providerCooldownMs = 2 * 60 * 1000;
+  private readonly providerCooldownMs = 10 * 1000;
+
+  private readonly environmentalRequestBudgetMs = 45 * 1000;
 
   private readonly providerCooldownUntil = new Map<string, number>();
 
@@ -61,7 +101,7 @@ export class OpenStreetMapEnvironmentalProvider implements EnvironmentalProvider
 
     const environmentalRequestStartedAt = Date.now();
 
-    const sampleGroups = this.chunkSamples(samples, 20);
+    const sampleGroups = this.chunkSamples(samples, 8);
 
     const retrievedAt = new Date().toISOString();
     const environments: RouteSampleEnvironment[] = [];
@@ -69,6 +109,11 @@ export class OpenStreetMapEnvironmentalProvider implements EnvironmentalProvider
     let usedLiveData = false;
     let usedCacheData = false;
     let usedFallbackData = false;
+
+    let liveGroups = 0;
+    let cacheGroups = 0;
+    let fallbackGroups = 0;
+    const fallbackReasons: string[] = [];
 
     for (const sampleGroup of sampleGroups) {
       const boundingBox = this.calculateBoundingBox(sampleGroup, 150);
@@ -81,8 +126,10 @@ export class OpenStreetMapEnvironmentalProvider implements EnvironmentalProvider
 
         if (this.lastDataSource === 'cache') {
           usedCacheData = true;
+          cacheGroups += 1;
         } else {
           usedLiveData = true;
+          liveGroups += 1;
         }
 
         for (const sample of sampleGroup) {
@@ -99,11 +146,14 @@ export class OpenStreetMapEnvironmentalProvider implements EnvironmentalProvider
         }
       } catch (error: unknown) {
         usedFallbackData = true;
+        fallbackGroups += 1;
 
         const message =
           error instanceof Error
             ? error.message
             : 'Unknown environmental retrieval error';
+
+        fallbackReasons.push(message);
 
         this.logger.warn(
           `Using mock environmental data for ${sampleGroup.length} sample(s): ${message}`,
@@ -127,6 +177,16 @@ export class OpenStreetMapEnvironmentalProvider implements EnvironmentalProvider
     } else if (usedCacheData) {
       this.lastDataSource = 'cache';
     }
+
+    this.lastRetrievalDiagnostics = {
+      sampleCount: samples.length,
+      groupCount: sampleGroups.length,
+      liveGroups,
+      cacheGroups,
+      fallbackGroups,
+      fallbackReasons,
+      durationMs: Date.now() - environmentalRequestStartedAt,
+    };
 
     return environments;
   }
@@ -156,10 +216,194 @@ export class OpenStreetMapEnvironmentalProvider implements EnvironmentalProvider
     return groups;
   }
 
+  private loadPersistentCache(): void {
+    if (this.persistentCacheLoaded) {
+      return;
+    }
+
+    this.persistentCacheLoaded = true;
+
+    if (!existsSync(this.persistentCachePath)) {
+      return;
+    }
+
+    try {
+      const raw = readFileSync(
+        this.persistentCachePath,
+        'utf8',
+      );
+
+      const stored = JSON.parse(raw) as Record<
+        string,
+        {
+          elements: OpenStreetMapElement[];
+          expiresAt: number;
+        }
+      >;
+
+      const now = Date.now();
+      let loadedCount = 0;
+
+      for (const [cacheKey, entry] of Object.entries(stored)) {
+        if (entry.expiresAt <= now) {
+          continue;
+        }
+
+        this.elementCache.set(cacheKey, entry);
+        loadedCount += 1;
+      }
+
+      this.logger.log(
+        `Loaded ${loadedCount} persistent OSM cache entr${
+          loadedCount === 1 ? 'y' : 'ies'
+        }`,
+      );
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'Unknown persistent cache error';
+
+      this.logger.warn(
+        `Could not load persistent OSM cache: ${message}`,
+      );
+    }
+  }
+
+  private savePersistentCache(): void {
+    try {
+      mkdirSync(
+        dirname(this.persistentCachePath),
+        { recursive: true },
+      );
+
+      const now = Date.now();
+
+      const stored: Record<
+        string,
+        {
+          elements: OpenStreetMapElement[];
+          expiresAt: number;
+        }
+      > = {};
+
+      for (const [cacheKey, entry] of this.elementCache.entries()) {
+        if (entry.expiresAt <= now) {
+          continue;
+        }
+
+        stored[cacheKey] = entry;
+      }
+
+      writeFileSync(
+        this.persistentCachePath,
+        JSON.stringify(stored),
+        'utf8',
+      );
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'Unknown persistent cache error';
+
+      this.logger.warn(
+        `Could not save persistent OSM cache: ${message}`,
+      );
+    }
+  }
+
+  private parseCacheBoundingBox(
+    cacheKey: string,
+  ): BoundingBox | null {
+    const parts = cacheKey.split(':');
+
+    if (
+      parts.length !== 5 ||
+      parts[0] !== 'osm-query-v1'
+    ) {
+      return null;
+    }
+
+    const south = Number(parts[1]);
+    const west = Number(parts[2]);
+    const north = Number(parts[3]);
+    const east = Number(parts[4]);
+
+    if (
+      !Number.isFinite(south) ||
+      !Number.isFinite(west) ||
+      !Number.isFinite(north) ||
+      !Number.isFinite(east)
+    ) {
+      return null;
+    }
+
+    return {
+      south,
+      west,
+      north,
+      east,
+    };
+  }
+
+  private findContainingCachedElements(
+    boundingBox: BoundingBox,
+  ): OpenStreetMapElement[] | null {
+    const now = Date.now();
+
+    let bestMatch:
+      | {
+          elements: OpenStreetMapElement[];
+          area: number;
+        }
+      | null = null;
+
+    for (const [cacheKey, entry] of this.elementCache.entries()) {
+      if (entry.expiresAt <= now) {
+        continue;
+      }
+
+      const cachedBox =
+        this.parseCacheBoundingBox(cacheKey);
+
+      if (!cachedBox) {
+        continue;
+      }
+
+      const containsRequestedBox =
+        cachedBox.south <= boundingBox.south &&
+        cachedBox.west <= boundingBox.west &&
+        cachedBox.north >= boundingBox.north &&
+        cachedBox.east >= boundingBox.east;
+
+      if (!containsRequestedBox) {
+        continue;
+      }
+
+      const area =
+        (cachedBox.north - cachedBox.south) *
+        (cachedBox.east - cachedBox.west);
+
+      if (
+        bestMatch === null ||
+        area < bestMatch.area
+      ) {
+        bestMatch = {
+          elements: entry.elements,
+          area,
+        };
+      }
+    }
+
+    return bestMatch?.elements ?? null;
+  }
+
   private async fetchElements(
     boundingBox: BoundingBox,
     environmentalRequestStartedAt: number,
   ): Promise<OpenStreetMapElement[]> {
+    this.loadPersistentCache();
+
     const cacheKey = this.createCacheKey(boundingBox);
 
     const cached = this.elementCache.get(cacheKey);
@@ -177,11 +421,39 @@ export class OpenStreetMapEnvironmentalProvider implements EnvironmentalProvider
       }
 
       this.elementCache.delete(cacheKey);
+      this.savePersistentCache();
+    }
+
+    const containingCachedElements =
+      this.findContainingCachedElements(
+        boundingBox,
+      );
+
+    if (containingCachedElements) {
+      this.logger.log(
+        `Overpass containing-region cache hit for ${cacheKey}: ` +
+          `${containingCachedElements.length} element(s)`,
+      );
+
+      this.lastDataSource = 'cache';
+
+      return containingCachedElements;
+    }
+
+    const elapsedRequestMs =
+      Date.now() - environmentalRequestStartedAt;
+
+    if (elapsedRequestMs >= this.environmentalRequestBudgetMs) {
+      throw new BadGatewayException(
+        `Environmental retrieval time budget exhausted after ${elapsedRequestMs}ms.`,
+      );
     }
 
     const query = this.buildOverpassQuery(boundingBox);
 
     const failures: string[] = [];
+    let providersAttempted = 0;
+    let providersSkippedForCooldown = 0;
 
     const orderedOverpassUrls =
       this.preferredOverpassUrl === null
@@ -197,10 +469,31 @@ export class OpenStreetMapEnvironmentalProvider implements EnvironmentalProvider
       const cooldownUntil = this.providerCooldownUntil.get(overpassUrl);
 
       if (cooldownUntil !== undefined && cooldownUntil > Date.now()) {
+        providersSkippedForCooldown += 1;
+
         this.logger.warn(`Skipping ${overpassUrl}; provider cooling down`);
 
         continue;
       }
+
+      providersAttempted += 1;
+
+      const elapsedRequestMs =
+        Date.now() - environmentalRequestStartedAt;
+
+      const remainingRequestBudgetMs =
+        this.environmentalRequestBudgetMs - elapsedRequestMs;
+
+      if (remainingRequestBudgetMs <= 0) {
+        throw new BadGatewayException(
+          `Environmental retrieval time budget exhausted after ${elapsedRequestMs}ms.`,
+        );
+      }
+
+      const providerTimeoutMs = Math.min(
+        this.getProviderTimeoutMs(overpassUrl),
+        remainingRequestBudgetMs,
+      );
 
       const startedAt = Date.now();
 
@@ -218,7 +511,7 @@ export class OpenStreetMapEnvironmentalProvider implements EnvironmentalProvider
             data: query,
           }).toString(),
 
-          signal: AbortSignal.timeout(this.getProviderTimeoutMs(overpassUrl)),
+          signal: AbortSignal.timeout(providerTimeoutMs),
         });
 
         const durationMs = Date.now() - startedAt;
@@ -258,8 +551,11 @@ export class OpenStreetMapEnvironmentalProvider implements EnvironmentalProvider
 
         this.elementCache.set(cacheKey, {
           elements,
-          expiresAt: Date.now() + this.cacheTtlMs,
+          expiresAt:
+            Date.now() + this.persistentCacheTtlMs,
         });
+
+        this.savePersistentCache();
 
         return elements;
       } catch (error: unknown) {
@@ -277,7 +573,23 @@ export class OpenStreetMapEnvironmentalProvider implements EnvironmentalProvider
           overpassUrl,
           Date.now() + this.providerCooldownMs,
         );
+
+        if (
+          Date.now() - environmentalRequestStartedAt >=
+          this.environmentalRequestBudgetMs
+        ) {
+          break;
+        }
       }
+    }
+
+    if (
+      providersAttempted === 0 &&
+      providersSkippedForCooldown === orderedOverpassUrls.length
+    ) {
+      throw new BadGatewayException(
+        'All OpenStreetMap environmental providers are temporarily cooling down after earlier failures.',
+      );
     }
 
     throw new BadGatewayException(
@@ -287,12 +599,8 @@ export class OpenStreetMapEnvironmentalProvider implements EnvironmentalProvider
     );
   }
 
-  private getProviderTimeoutMs(overpassUrl: string): number {
-    if (overpassUrl.includes('overpass-api.de')) {
-      return 15000;
-    }
-
-    return 5000;
+  private getProviderTimeoutMs(_overpassUrl: string): number {
+    return 9000;
   }
 
   private buildOverpassQuery(boundingBox: BoundingBox): string {
@@ -303,14 +611,10 @@ export class OpenStreetMapEnvironmentalProvider implements EnvironmentalProvider
       `${boundingBox.east}`;
 
     return `
-[out:json][timeout:15];
+[out:json][timeout:8];
 (
   node["amenity"](${box});
-  way["amenity"](${box});
-
   node["shop"](${box});
-  way["shop"](${box});
-
   node["tourism"](${box});
 
   node["leisure"="park"](${box});
@@ -336,6 +640,9 @@ export class OpenStreetMapEnvironmentalProvider implements EnvironmentalProvider
   way["highway"="primary"](${box});
   way["highway"="secondary"](${box});
   way["highway"="tertiary"](${box});
+
+  way["highway"="pedestrian"](${box});
+  way["highway"="construction"](${box});
 );
 out center tags;
 `;
@@ -343,6 +650,7 @@ out center tags;
 
   private createCacheKey(boundingBox: BoundingBox): string {
     return [
+      'osm-query-v1',
       boundingBox.south.toFixed(4),
       boundingBox.west.toFixed(4),
       boundingBox.north.toFixed(4),
@@ -434,6 +742,50 @@ out center tags;
       ),
     );
 
+    observations.push(
+      this.createObservation(
+        sample,
+        'shade',
+        this.calculateShadeValue(nearbyElements),
+        0.5,
+        retrievedAt,
+        nearbyElements.length,
+      ),
+    );
+
+    observations.push(
+      this.createObservation(
+        sample,
+        'pedestrian-density',
+        this.calculatePedestrianValue(nearbyElements),
+        0.5,
+        retrievedAt,
+        nearbyElements.length,
+      ),
+    );
+
+    observations.push(
+      this.createObservation(
+        sample,
+        'noise',
+        this.calculateNoiseValue(nearbyElements),
+        0.45,
+        retrievedAt,
+        nearbyElements.length,
+      ),
+    );
+
+    observations.push(
+      this.createObservation(
+        sample,
+        'construction',
+        this.calculateConstructionValue(nearbyElements),
+        0.55,
+        retrievedAt,
+        nearbyElements.length,
+      ),
+    );
+
     return observations;
   }
 
@@ -496,7 +848,7 @@ out center tags;
       return Boolean(tags.amenity || tags.shop || tags.tourism || tags.leisure);
     }).length;
 
-    return this.normalizeCount(poiCount, 15);
+    return this.normalizeCount(poiCount, 40);
   }
 
   private calculateCommercialValue(
@@ -520,6 +872,143 @@ out center tags;
     }).length;
 
     return this.normalizeCount(commercialCount, 12);
+  }
+
+  private calculateShadeValue(
+    nearbyElements: Array<{
+      element: OpenStreetMapElement;
+      distanceMeters: number;
+    }>,
+  ): number {
+    let shadeValue = 0;
+
+    for (const { element, distanceMeters } of nearbyElements) {
+      const tags = element.tags ?? {};
+
+      let elementShadeValue = 0;
+
+      if (tags.natural === 'tree') {
+        elementShadeValue = 0.8;
+      } else if (
+        tags.natural === 'wood' ||
+        tags.landuse === 'forest'
+      ) {
+        elementShadeValue = 1;
+      } else if (
+        tags.leisure === 'park' ||
+        tags.leisure === 'garden'
+      ) {
+        elementShadeValue = 0.45;
+      }
+
+      if (elementShadeValue === 0) {
+        continue;
+      }
+
+      const proximity =
+        this.distanceToProximityValue(
+          distanceMeters,
+          100,
+        );
+
+      shadeValue = Math.max(
+        shadeValue,
+        elementShadeValue * proximity,
+      );
+    }
+
+    return this.clamp01(shadeValue);
+  }
+
+  private calculatePedestrianValue(
+    nearbyElements: Array<{
+      element: OpenStreetMapElement;
+      distanceMeters: number;
+    }>,
+  ): number {
+    const crossingCount = nearbyElements.filter(
+      ({ element }) =>
+        element.tags?.highway === 'crossing',
+    ).length;
+
+    const pedestrianStreetCount =
+      nearbyElements.filter(
+        ({ element }) =>
+          element.tags?.highway === 'pedestrian',
+      ).length;
+
+    const crossingActivity =
+      this.normalizeCount(crossingCount, 6);
+
+    const pedestrianStreetActivity =
+      this.normalizeCount(
+        pedestrianStreetCount,
+        3,
+      );
+
+    const poiActivity =
+      this.calculatePoiValue(nearbyElements);
+
+    const commercialActivity =
+      this.calculateCommercialValue(
+        nearbyElements,
+      );
+
+    return this.clamp01(
+      crossingActivity * 0.35 +
+        pedestrianStreetActivity * 0.25 +
+        poiActivity * 0.2 +
+        commercialActivity * 0.2,
+    );
+  }
+
+  private calculateNoiseValue(
+    nearbyElements: Array<{
+      element: OpenStreetMapElement;
+      distanceMeters: number;
+    }>,
+  ): number {
+    const traffic =
+      this.calculateTrafficValue(nearbyElements);
+
+    const commercial =
+      this.calculateCommercialValue(nearbyElements);
+
+    return this.clamp01(
+      traffic * 0.7 +
+        commercial * 0.3,
+    );
+  }
+
+  private calculateConstructionValue(
+    nearbyElements: Array<{
+      element: OpenStreetMapElement;
+      distanceMeters: number;
+    }>,
+  ): number {
+    let constructionValue = 0;
+
+    for (const { element, distanceMeters } of nearbyElements) {
+      const tags = element.tags ?? {};
+
+      const isConstruction =
+        tags.highway === 'construction' ||
+        Boolean(tags.construction);
+
+      if (!isConstruction) {
+        continue;
+      }
+
+      constructionValue = Math.max(
+        constructionValue,
+        this.distanceToProximityValue(
+          distanceMeters,
+          150,
+        ),
+      );
+    }
+
+    return this.clamp01(constructionValue);
   }
 
   private calculateTrafficValue(
@@ -615,6 +1104,10 @@ out center tags;
 
   getLastDataSource(): 'live' | 'cache' | 'mixed' | 'fallback' {
     return this.lastDataSource;
+  }
+
+  getLastRetrievalDiagnostics(): EnvironmentalRetrievalDiagnostics {
+    return this.lastRetrievalDiagnostics;
   }
 
   private calculateBoundingBox(

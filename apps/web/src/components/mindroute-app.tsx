@@ -14,16 +14,113 @@ type LocationResult = Coordinates & {
   name: string;
   fullAddress: string;
 };
-type WalkingRoute = {
-  id: string;
+type RouteRecommendationLabel =
+  | 'Best overall'
+  | 'Lowest cognitive load'
+  | 'Most comfortable'
+  | 'Fastest'
+  | 'Alternative';
+
+type RouteRecommendation = {
+  primaryLabel: RouteRecommendationLabel;
+  labels: RouteRecommendationLabel[];
+  explanation: string;
+};
+
+type RouteScore = {
+  cognitiveLoadScore: number;
+  comfortScore: number;
+  finalScore: number;
+  breakdown: {
+    navigationComplexity: number;
+    crossingComplexity: number;
+    environmentalStrain: number;
+    routeEfficiency: number;
+    environmentalComfort: number;
+  };
+  scoringMethod: 'rule-based-v1';
+};
+
+type RouteComparisonRow = {
+  routeId: string;
+
   distanceMeters: number;
   durationSeconds: number;
-  geometry: { type: 'LineString'; coordinates: [number, number][] };
+  detourPercent: number;
+
+  turnCount: number;
+  sharpTurnCount: number;
+  decisionPointCount: number;
+  instructionDensityPerKm: number;
+  averageSegmentLengthMeters: number;
+  shortSegmentCount: number;
+  routeStraightness: number;
+
+  crossingCount: number;
+  signalizedCrossingCount: number;
+  unsignalizedCrossingCount: number;
+  complexIntersectionCount: number;
+  crossingComplexity: number;
+
+  estimatedShadeExposure: number;
+  greeneryExposure: number;
+  parkExposure: number;
+  pedestrianDensity: number;
+  trafficExposure: number;
+  noiseExposure: number;
+  commercialActivityExposure: number;
+  constructionExposure: number;
+  eventExposure: number;
+  pointOfInterestDensity: number;
+
+  dataConfidence: number;
+  environmentalDataStatus: 'real' | 'fallback';
+};
+
+type WalkingRoute = {
+  id: string;
+  candidateSource: 'direct' | 'left-offset' | 'right-offset';
+  rank: number;
+
+  distanceMeters: number;
+  durationSeconds: number;
+
+  geometry: {
+    type: 'LineString';
+    coordinates: [number, number][];
+  };
+
+  comparisonRow: RouteComparisonRow;
+  score: RouteScore;
+  recommendation?: RouteRecommendation;
+
   instructions: Array<{
     instruction: string;
     distanceMeters: number;
     durationSeconds: number;
   }>;
+};
+
+type RouteGenerationDiagnostics = {
+  plansAttempted: number;
+  providerSuccesses: number;
+  providerFailures: number;
+  routesBeforeDeduplication: number;
+  routesAfterDeduplication: number;
+  duplicatesRemoved: number;
+};
+
+type NavigationRoutesResponse = {
+  requestId: string;
+  routes: WalkingRoute[];
+  diagnostics: RouteGenerationDiagnostics;
+};
+
+type RouteSelectionResponse = {
+  requestId: string;
+  routeId: string;
+  selectedAt: string;
+  labelSource: 'user-choice';
 };
 
 const SF_CENTER: [number, number] = [-122.4194, 37.7749];
@@ -52,7 +149,10 @@ export default function MindRouteApp() {
   const [origin, setOrigin] = useState<Coordinates>(DEFAULT_ORIGIN);
   const [destination, setDestination] = useState<LocationResult | null>(null);
   const [routes, setRoutes] = useState<WalkingRoute[]>([]);
+  const [requestId, setRequestId] = useState<string | null>(null);
   const [selectedRouteId, setSelectedRouteId] = useState<string | null>(null);
+  const [confirmedRouteId, setConfirmedRouteId] = useState<string | null>(null);
+  const [isConfirmingRoute, setIsConfirmingRoute] = useState(false);
   const [status, setStatus] = useState('Choose your starting point and destination.');
   const [isSearching, setIsSearching] = useState(false);
   const [isRouting, setIsRouting] = useState(false);
@@ -210,13 +310,22 @@ export default function MindRouteApp() {
         destinationLat: String(destination.latitude),
         destinationLng: String(destination.longitude),
       });
-      const data = await apiRequest<WalkingRoute[]>(`/navigation/routes?${params}`);
-      setRoutes(data);
-      if (data[0]) {
-        setSelectedRouteId(data[0].id);
-        drawRoute(data[0]);
+      const data = await apiRequest<NavigationRoutesResponse>(
+        `/navigation/routes?${params}`,
+      );
+
+      setRoutes(data.routes);
+      setRequestId(data.requestId);
+      setConfirmedRouteId(null);
+
+      if (data.routes[0]) {
+        setSelectedRouteId(data.routes[0].id);
+        drawRoute(data.routes[0]);
       }
-      setStatus(`${data.length} walking route${data.length === 1 ? '' : 's'} available.`);
+
+      setStatus(
+        `${data.routes.length} walking route${data.routes.length === 1 ? '' : 's'} available.`,
+      );
     } catch (error) {
       setStatus(error instanceof Error ? error.message : 'Route generation failed.');
     } finally {
@@ -227,6 +336,43 @@ export default function MindRouteApp() {
   function selectRoute(route: WalkingRoute) {
     setSelectedRouteId(route.id);
     drawRoute(route);
+  }
+
+  async function confirmRoute(route: WalkingRoute) {
+    if (!requestId || confirmedRouteId || isConfirmingRoute) {
+      return;
+    }
+
+    setIsConfirmingRoute(true);
+    setStatus('Saving your route choice…');
+
+    try {
+      await apiRequest<RouteSelectionResponse>(
+        '/navigation/route-selections',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            requestId,
+            routeId: route.id,
+          }),
+        },
+      );
+
+      setConfirmedRouteId(route.id);
+      setSelectedRouteId(route.id);
+      drawRoute(route);
+      setStatus(
+        'Route selected. Your choice was saved and can be used as preference training data.',
+      );
+    } catch (error) {
+      setStatus(
+        error instanceof Error
+          ? error.message
+          : 'Unable to save your route choice.',
+      );
+    } finally {
+      setIsConfirmingRoute(false);
+    }
   }
 
   return (
@@ -302,17 +448,81 @@ export default function MindRouteApp() {
           ) : (
             <div className="route-list">
               {routes.map((route, index) => (
-                <button
-                  type="button"
+                <div
                   key={route.id}
                   className="route-card"
                   data-selected={selectedRouteId === route.id}
-                  onClick={() => selectRoute(route)}
                 >
-                  <span>Option {index + 1}</span>
-                  <strong>{formatDuration(route.durationSeconds)}</strong>
-                  <small>{formatDistance(route.distanceMeters)}</small>
-                </button>
+                  <div className="route-card-header">
+                    <span>Option {index + 1}</span>
+                    {route.recommendation?.primaryLabel && (
+                      <span className="route-recommendation">
+                        {route.recommendation.primaryLabel}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="route-card-summary">
+                    <strong>{formatDuration(route.durationSeconds)}</strong>
+                    <small>{formatDistance(route.distanceMeters)}</small>
+                  </div>
+
+                  <div className="route-score-row">
+                    <span>Cognitive load</span>
+                    <strong>{Math.round(route.score.cognitiveLoadScore)}</strong>
+                  </div>
+
+                  <div className="route-score-row">
+                    <span>Comfort</span>
+                    <strong>{Math.round(route.score.comfortScore)}</strong>
+                  </div>
+
+                  <div className="route-environment">
+                    <span>
+                      Greenery {Math.round(route.comparisonRow.greeneryExposure * 100)}%
+                    </span>
+                    <span>
+                      Shade {Math.round(route.comparisonRow.estimatedShadeExposure * 100)}%
+                    </span>
+                    <span>
+                      Pedestrians {Math.round(route.comparisonRow.pedestrianDensity * 100)}%
+                    </span>
+                    <span>
+                      Traffic {Math.round(route.comparisonRow.trafficExposure * 100)}%
+                    </span>
+                  </div>
+
+                  {route.recommendation?.explanation && (
+                    <p className="route-explanation">
+                      {route.recommendation.explanation}
+                    </p>
+                  )}
+                  <div className="route-card-actions">
+                    <button
+                      type="button"
+                      className="secondary-button"
+                      onClick={() => selectRoute(route)}
+                    >
+                      Preview
+                    </button>
+
+                    <button
+                      type="button"
+                      className="primary-button"
+                      onClick={() => confirmRoute(route)}
+                      disabled={
+                        confirmedRouteId !== null ||
+                        isConfirmingRoute
+                      }
+                    >
+                      {confirmedRouteId === route.id
+                        ? 'Selected'
+                        : isConfirmingRoute
+                          ? 'Saving…'
+                          : 'Use this route'}
+                    </button>
+                  </div>
+                </div>
               ))}
             </div>
           )}

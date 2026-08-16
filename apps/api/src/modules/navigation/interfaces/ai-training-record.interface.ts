@@ -6,7 +6,7 @@ import type { RouteCandidateSource } from './candidate-route.interface';
 import type { RouteRecommendationLabel } from './route-recommendation.interface';
 
 export interface AITrainingRecord {
-  schemaVersion: '1.4';
+  schemaVersion: '2.0';
 
   requestId: string;
   capturedAt: string;

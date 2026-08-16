@@ -45,10 +45,24 @@ export class NavigationController {
     return this.supervisedTrainingDatasetService.getRecords();
   }
 
+  @Get('trainable-records')
+  getTrainableRecords() {
+    return this.supervisedTrainingDatasetService.getTrainableRecords();
+  }
+
   @Get('supervised-training-records.csv')
   @Header('Content-Type', 'text/csv; charset=utf-8')
   async getSupervisedTrainingRecordsCsv(): Promise<string> {
     const records = await this.supervisedTrainingDatasetService.getRecords();
+
+    return this.aiTrainingDatasetService.toCsv(records);
+  }
+
+  @Get('trainable-records.csv')
+  @Header('Content-Type', 'text/csv; charset=utf-8')
+  async getTrainableRecordsCsv(): Promise<string> {
+    const records =
+      await this.supervisedTrainingDatasetService.getTrainableRecords();
 
     return this.aiTrainingDatasetService.toCsv(records);
   }
