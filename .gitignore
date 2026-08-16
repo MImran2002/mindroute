@@ -18,3 +18,12 @@ apps/api/data/ai-training-records.jsonl
 
 # Locally collected MindRoute user route choices
 apps/api/data/ai-route-selections.jsonl
+
+# Python virtual environments
+.venv/
+venv/
+env/
+
+# Python cache
+__pycache__/
+*.py[cod]
