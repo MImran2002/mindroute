@@ -22,6 +22,56 @@ export class SupervisedTrainingDatasetService {
     'ai-route-selections.jsonl',
   );
 
+  async getTrainableRecords(): Promise<SupervisedTrainingRecord[]> {
+    const records = await this.getRecords();
+
+    const recordsByRequest = new Map<
+      string,
+      SupervisedTrainingRecord[]
+    >();
+
+    for (const record of records) {
+      const requestRecords =
+        recordsByRequest.get(record.requestId) ?? [];
+
+      requestRecords.push(record);
+      recordsByRequest.set(
+        record.requestId,
+        requestRecords,
+      );
+    }
+
+    const trainableRecords: SupervisedTrainingRecord[] = [];
+
+    for (const requestRecords of recordsByRequest.values()) {
+      const hasEnoughCandidates =
+        requestRecords.length >= 2;
+
+      const allCandidatesUseCurrentSchema =
+        requestRecords.every(
+          (record) => record.schemaVersion === '2.0',
+        );
+
+      const allCandidatesHaveGoodEnvironmentalData =
+        requestRecords.every(
+          (record) =>
+            record.environmentalDataStatus !== 'fallback' &&
+            record.environmentalRetrievalSource !== 'fallback' &&
+            record.dataConfidence >= 0.5,
+        );
+
+      if (
+        hasEnoughCandidates &&
+        allCandidatesUseCurrentSchema &&
+        allCandidatesHaveGoodEnvironmentalData
+      ) {
+        trainableRecords.push(...requestRecords);
+      }
+    }
+
+    return trainableRecords;
+  }
+
   async getRecords(): Promise<SupervisedTrainingRecord[]> {
     const trainingRecords = await this.readJsonLines<AITrainingRecord>(
       this.trainingDatasetPath,

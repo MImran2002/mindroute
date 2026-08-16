@@ -165,8 +165,9 @@ export class RouteFeatureExtractorService {
       crossingCount > 0
         ? Math.min(
             1,
-            (unsignalizedCrossingCount * 0.5 + complexIntersectionCount) /
-              crossingCount,
+            (unsignalizedCrossingCount / crossingCount) * 0.3 +
+              (complexIntersectionCount / crossingCount) * 0.45 +
+              Math.min(crossingCount / 20, 1) * 0.25,
           )
         : 0;
 

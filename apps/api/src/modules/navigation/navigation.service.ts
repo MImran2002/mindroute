@@ -46,6 +46,7 @@ import {
   type RouteCandidatePlan,
 } from './route-candidate-generator.service';
 import { RouteGenerationDiagnosticsService } from './route-generation-diagnostics.service';
+import { MlRankingService } from './ml-ranking.service';
 
 export interface WalkingRoute {
   id: string;
@@ -92,6 +93,7 @@ export class NavigationService {
     private readonly routeRecommendationService: RouteRecommendationService,
     private readonly routeCandidateGeneratorService: RouteCandidateGeneratorService,
     private readonly routeGenerationDiagnosticsService: RouteGenerationDiagnosticsService,
+    private readonly mlRankingService: MlRankingService,
     private readonly aiTrainingRecordService: AITrainingRecordService,
     private readonly aiTrainingDatasetService: AITrainingDatasetService,
     private readonly aiTrainingStorageService: AITrainingStorageService,
@@ -164,7 +166,7 @@ export class NavigationService {
     for (const route of candidateRoutes) {
       routeSamples.set(
         route.id,
-        this.routeSamplingService.sampleRoute(route, 100),
+        this.routeSamplingService.sampleRoute(route, 200),
       );
     }
 
@@ -218,6 +220,45 @@ export class NavigationService {
         const environmentalSummary =
           this.environmentalAggregationService.aggregate(sampleEnvironments);
 
+        const routeObservations = sampleEnvironments.flatMap(
+          (sampleEnvironment) => sampleEnvironment.observations,
+        );
+
+        const hasRealEnvironmentalData =
+          routeObservations.some(
+            (observation) =>
+              observation.source !== 'mock' &&
+              observation.source !== 'unknown',
+          );
+
+        const hasFallbackEnvironmentalData =
+          routeObservations.some(
+            (observation) =>
+              observation.source === 'mock' ||
+              observation.source === 'unknown',
+          );
+
+        let routeEnvironmentalDataStatus: EnvironmentalDataStatus =
+          'unavailable';
+
+        if (
+          hasRealEnvironmentalData &&
+          hasFallbackEnvironmentalData
+        ) {
+          routeEnvironmentalDataStatus = 'partial';
+        } else if (hasRealEnvironmentalData) {
+          routeEnvironmentalDataStatus = 'real';
+        } else if (hasFallbackEnvironmentalData) {
+          routeEnvironmentalDataStatus = 'fallback';
+        }
+
+        const routeEnvironmentalDataSource: EnvironmentalRetrievalSource =
+          routeEnvironmentalDataStatus === 'fallback'
+            ? 'fallback'
+            : routeEnvironmentalDataStatus === 'partial'
+              ? 'mixed'
+              : environmentalDataSource;
+
         const features: RouteFeatures = {
           ...navigationFeatures,
 
@@ -248,7 +289,8 @@ export class NavigationService {
         const comparisonRow = this.routeComparisonRowService.createRow({
           routeId: route.id,
           features,
-          environmentalDataStatus,
+          environmentalDataStatus:
+            routeEnvironmentalDataStatus,
         });
 
         const score = this.routeBaselineScorerService.scoreRoute(comparisonRow);
@@ -268,8 +310,10 @@ export class NavigationService {
           features,
 
           environmentalSummary,
-          environmentalDataStatus,
-          environmentalDataSource,
+          environmentalDataStatus:
+            routeEnvironmentalDataStatus,
+          environmentalDataSource:
+            routeEnvironmentalDataSource,
 
           comparisonRow,
           score,
@@ -288,18 +332,68 @@ export class NavigationService {
       }),
     );
 
-    const rankedRoutes = analyzedRoutes
+    const baselineRankedRoutes = analyzedRoutes
       .sort(
         (firstRoute, secondRoute) =>
-          firstRoute.score.finalScore - secondRoute.score.finalScore,
+          firstRoute.score.finalScore -
+          secondRoute.score.finalScore,
       )
       .map((route, index) => ({
         ...route,
         rank: index + 1,
       }));
 
+    const mlRanking =
+      await this.mlRankingService.rankRoutes(
+        requestId,
+        baselineRankedRoutes,
+      );
+
+    let rankedRoutes = baselineRankedRoutes;
+
+    if (
+      mlRanking?.modelAvailable &&
+      mlRanking.productionReady
+    ) {
+      const mlRankByRouteId = new Map(
+        mlRanking.rankedRoutes.map(
+          (route) => [
+            route.routeId,
+            route.mlRank,
+          ],
+        ),
+      );
+
+      const hasCompleteMlRanking =
+        baselineRankedRoutes.every(
+          (route) =>
+            mlRankByRouteId.has(route.id),
+        );
+
+      if (hasCompleteMlRanking) {
+        rankedRoutes = [
+          ...baselineRankedRoutes,
+        ]
+          .sort(
+            (firstRoute, secondRoute) =>
+              (mlRankByRouteId.get(
+                firstRoute.id,
+              ) ?? Number.MAX_SAFE_INTEGER) -
+              (mlRankByRouteId.get(
+                secondRoute.id,
+              ) ?? Number.MAX_SAFE_INTEGER),
+          )
+          .map((route, index) => ({
+            ...route,
+            rank: index + 1,
+          }));
+      }
+    }
+
     const recommendedRoutes =
-      this.routeRecommendationService.assignRecommendations(rankedRoutes);
+      this.routeRecommendationService.assignRecommendations(
+        rankedRoutes,
+      );
 
     const routesWithTrainingRecords = recommendedRoutes.map((route) => ({
       ...route,
@@ -336,9 +430,12 @@ export class NavigationService {
       survivingCandidateSources: deduplicatedCandidateRoutes.map(
         (route) => route.candidateSource,
       ),
+      environmental:
+        this.openStreetMapEnvironmentalProvider.getLastRetrievalDiagnostics(),
     });
 
     return {
+      requestId,
       routes: routesWithTrainingRecords,
       diagnostics: {
         plansAttempted: candidatePlans.length,
@@ -348,6 +445,9 @@ export class NavigationService {
         routesAfterDeduplication: deduplicatedCandidateRoutes.length,
         duplicatesRemoved:
           normalizedCandidateRoutes.length - deduplicatedCandidateRoutes.length,
+
+        environmental:
+          this.openStreetMapEnvironmentalProvider.getLastRetrievalDiagnostics(),
       },
     };
   }

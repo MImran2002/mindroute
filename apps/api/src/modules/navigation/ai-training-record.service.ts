@@ -43,7 +43,7 @@ export class AITrainingRecordService {
     } = input;
 
     return {
-      schemaVersion: '1.4',
+      schemaVersion: '2.0',
 
       requestId,
       capturedAt,

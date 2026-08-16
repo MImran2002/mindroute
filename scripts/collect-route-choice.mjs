@@ -155,11 +155,12 @@ async function collectChoice() {
   }
 
   const requestId =
+    result.requestId ??
     routes[0]?.trainingRecord?.requestId;
 
   if (!requestId) {
     throw new Error(
-      'Could not find requestId in training record.',
+      'Could not find requestId in navigation response.',
     );
   }
 
@@ -191,8 +192,27 @@ async function collectChoice() {
       `  Recommendation: ${record.recommendationLabel}`,
     );
     console.log(
-      `  Environment:    ${record.environmentalRetrievalSource}`,
+      `  Environment:    ${record.environmentalRetrievalSource ?? record.environmentalDataStatus}`,
     );
+    console.log(
+      `  Confidence:     ${Math.round(record.dataConfidence * 100)}%`,
+    );
+
+    const candidatePassesQuality =
+      record.environmentalDataStatus !== 'fallback' &&
+      record.environmentalRetrievalSource !== 'fallback' &&
+      record.dataConfidence >= 0.5;
+
+    console.log(
+      `  Data quality:   ${candidatePassesQuality ? 'PASS' : 'FAIL'}`,
+    );
+
+    if (!candidatePassesQuality) {
+      console.log(
+        '  Warning:        This candidate does not meet the ML quality threshold.',
+      );
+    }
+
     console.log('');
   });
 
@@ -205,6 +225,31 @@ async function collectChoice() {
     );
     return;
   }
+
+  const requestIsTrainable =
+    routes.length >= 2 &&
+    routes.every((route) => {
+      const record = route.trainingRecord;
+
+      return (
+        record &&
+        record.environmentalDataStatus !== 'fallback' &&
+        record.environmentalRetrievalSource !== 'fallback' &&
+        record.dataConfidence >= 0.5
+      );
+    });
+
+  console.log(
+    `Request trainable: ${requestIsTrainable ? 'YES' : 'NO'}`,
+  );
+
+  if (!requestIsTrainable) {
+    console.log(
+      'This choice will still be saved, but this request will be excluded from the clean ML dataset.',
+    );
+  }
+
+  console.log('');
 
   let selectedIndex;
 

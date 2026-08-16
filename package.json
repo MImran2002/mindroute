@@ -9,6 +9,9 @@
     "dev:api": "pnpm --filter api start:dev",
     "build": "pnpm --recursive run build",
     "lint": "pnpm --recursive run lint",
-    "test": "pnpm --recursive run test --if-present"
+    "test": "pnpm --recursive run test --if-present",
+    "collect:choices": "node scripts/collect-route-choice.mjs",
+    "audit:training": "node scripts/audit-training-data.mjs",
+    "prewarm:osm": "node scripts/prewarm-osm-cache.mjs"
   }
 }

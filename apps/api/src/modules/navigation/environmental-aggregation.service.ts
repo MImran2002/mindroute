@@ -96,12 +96,49 @@ export class EnvironmentalAggregationService {
       return 0;
     }
 
-    const confidenceTotal = observations.reduce(
-      (total, observation) => total + this.clamp01(observation.confidence),
-      0,
+    const expectedFeatureTypes: EnvironmentalFeatureType[] = [
+      'shade',
+      'greenery',
+      'park',
+      'pedestrian-density',
+      'traffic',
+      'noise',
+      'commercial-activity',
+      'construction',
+      'point-of-interest',
+    ];
+
+    const observedFeatureTypes = new Set(
+      observations.map(
+        (observation) => observation.featureType,
+      ),
     );
 
-    return this.clamp01(confidenceTotal / observations.length);
+    const coveredFeatureCount =
+      expectedFeatureTypes.filter(
+        (featureType) =>
+          observedFeatureTypes.has(featureType),
+      ).length;
+
+    const featureCoverage =
+      coveredFeatureCount /
+      expectedFeatureTypes.length;
+
+    const realObservationCount =
+      observations.filter(
+        (observation) =>
+          observation.source !== 'mock' &&
+          observation.source !== 'unknown',
+      ).length;
+
+    const realObservationShare =
+      realObservationCount /
+      observations.length;
+
+    return this.clamp01(
+      featureCoverage * 0.4 +
+        realObservationShare * 0.6,
+    );
   }
 
   private clamp01(value: number): number {

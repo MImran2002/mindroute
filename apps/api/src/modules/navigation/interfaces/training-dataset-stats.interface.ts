@@ -3,8 +3,15 @@ export interface TrainingDatasetStats {
   totalLabeledRecords: number;
   totalLabeledRequests: number;
 
+  totalTrainableRecords: number;
+  totalTrainableRequests: number;
+  excludedFromTrainingRecords: number;
+
   selectedExamples: number;
   notSelectedExamples: number;
+
+  trainableSelectedExamples: number;
+  trainableNotSelectedExamples: number;
 
   liveEnvironmentalRecords: number;
   cachedEnvironmentalRecords: number;

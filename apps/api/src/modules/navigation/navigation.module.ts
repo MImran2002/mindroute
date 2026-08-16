@@ -17,11 +17,13 @@ import { SupervisedTrainingDatasetService } from './supervised-training-dataset.
 import { TrainingDatasetStatsService } from './training-dataset-stats.service';
 import { RouteCandidateGeneratorService } from './route-candidate-generator.service';
 import { RouteGenerationDiagnosticsService } from './route-generation-diagnostics.service';
+import { MlRankingService } from './ml-ranking.service';
 
 @Module({
   controllers: [NavigationController],
 
   providers: [
+    MlRankingService,
     RouteGenerationDiagnosticsService,
     RouteCandidateGeneratorService,
     TrainingDatasetStatsService,

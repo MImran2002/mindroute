@@ -11,10 +11,22 @@ export class TrainingDatasetStatsService {
 
   async getStats(): Promise<TrainingDatasetStats> {
     const records = await this.supervisedTrainingDatasetService.getRecords();
+    const trainableRecords =
+      await this.supervisedTrainingDatasetService.getTrainableRecords();
+
+    const currentSchemaRecords = records.filter(
+      (record) => record.schemaVersion === '2.0',
+    );
 
     const requestIds = new Set(records.map((record) => record.requestId));
+    const trainableRequestIds = new Set(
+      trainableRecords.map((record) => record.requestId),
+    );
 
     const selectedRecords = records.filter((record) => record.selected === 1);
+    const trainableSelectedRecords = trainableRecords.filter(
+      (record) => record.selected === 1,
+    );
 
     const liveEnvironmentalRecords = records.filter(
       (record) =>
@@ -34,12 +46,12 @@ export class TrainingDatasetStatsService {
           record.environmentalDataStatus === 'fallback'),
     ).length;
 
-    const selectedRankOneCount = selectedRecords.filter(
+    const selectedRankOneCount = trainableSelectedRecords.filter(
       (record) => record.rank === 1,
     ).length;
 
     const selectedNonRankOneCount =
-      selectedRecords.length - selectedRankOneCount;
+      trainableSelectedRecords.length - selectedRankOneCount;
 
     const recommendationCounts: Record<string, number> = {};
 
@@ -50,26 +62,43 @@ export class TrainingDatasetStatsService {
     }
 
     const averageCandidatesPerLabeledRequest =
-      requestIds.size === 0
+      trainableRequestIds.size === 0
         ? 0
-        : Number((records.length / requestIds.size).toFixed(2));
+        : Number(
+            (
+              trainableRecords.length / trainableRequestIds.size
+            ).toFixed(2),
+          );
 
     const labeledRequestTarget = 50;
 
     const labeledRequestProgress = Number(
-      Math.min(requestIds.size / labeledRequestTarget, 1).toFixed(2),
+      Math.min(trainableRequestIds.size / labeledRequestTarget, 1).toFixed(2),
     );
 
+    const currentSchemaFallbackRecords =
+      currentSchemaRecords.filter(
+        (record) =>
+          record.environmentalRetrievalSource === 'fallback' ||
+          (record.environmentalRetrievalSource === undefined &&
+            record.environmentalDataStatus === 'fallback'),
+      ).length;
+
     const fallbackEnvironmentalShare =
-      records.length === 0
+      currentSchemaRecords.length === 0
         ? 0
-        : Number((fallbackEnvironmentalRecords / records.length).toFixed(4));
+        : Number(
+            (
+              currentSchemaFallbackRecords /
+              currentSchemaRecords.length
+            ).toFixed(4),
+          );
 
     const baselineTrainingReadinessReasons: string[] = [];
 
-    if (requestIds.size < labeledRequestTarget) {
+    if (trainableRequestIds.size < labeledRequestTarget) {
       baselineTrainingReadinessReasons.push(
-        `Need at least ${labeledRequestTarget} labeled requests; currently ${requestIds.size}.`,
+        `Need at least ${labeledRequestTarget} trainable labeled requests; currently ${trainableRequestIds.size}.`,
       );
     }
 
@@ -98,8 +127,17 @@ export class TrainingDatasetStatsService {
       totalLabeledRecords: records.length,
       totalLabeledRequests: requestIds.size,
 
+      totalTrainableRecords: trainableRecords.length,
+      totalTrainableRequests: trainableRequestIds.size,
+      excludedFromTrainingRecords:
+        records.length - trainableRecords.length,
+
       selectedExamples: selectedRecords.length,
       notSelectedExamples: records.length - selectedRecords.length,
+
+      trainableSelectedExamples: trainableSelectedRecords.length,
+      trainableNotSelectedExamples:
+        trainableRecords.length - trainableSelectedRecords.length,
 
       liveEnvironmentalRecords,
       cachedEnvironmentalRecords,
