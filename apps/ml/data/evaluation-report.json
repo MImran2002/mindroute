@@ -1,0 +1,2113 @@
+{
+  "schemaVersion": "2.0",
+  "evaluationMethod": "leave-one-request-out",
+  "requests": 76,
+  "candidateRows": 197,
+  "strictTopChoiceAccuracy": 0.9342105263157895,
+  "baselineTopChoiceAccuracy": 0.5789473684210527,
+  "topScoreTieRate": 0.0,
+  "selectedInTopTieRate": 0.9342105263157895,
+  "meanNdcg": 0.9739963028195504,
+  "selectedBaselineRanks": {
+    "1": 44,
+    "2": 28,
+    "3": 4
+  },
+  "learnedSignalDetected": true,
+  "requestResults": [
+    {
+      "requestId": "3b932bec-68a2-4b8d-b8c6-e8a688e91ada",
+      "selectedRouteId": "route-1",
+      "selectedBaselineRank": 1,
+      "predictedRouteId": "route-1",
+      "tiedAtTop": false,
+      "selectedInTopTie": true,
+      "strictMatch": true,
+      "ndcg": 1.0,
+      "routes": [
+        {
+          "routeId": "route-1",
+          "baselineRank": 1,
+          "selected": true,
+          "mlScore": 1.264464020729065
+        },
+        {
+          "routeId": "route-2",
+          "baselineRank": 2,
+          "selected": false,
+          "mlScore": -1.3742034435272217
+        }
+      ]
+    },
+    {
+      "requestId": "46123432-9c4b-4d6d-b94c-668572af9d5a",
+      "selectedRouteId": "route-1",
+      "selectedBaselineRank": 1,
+      "predictedRouteId": "route-1",
+      "tiedAtTop": false,
+      "selectedInTopTie": true,
+      "strictMatch": true,
+      "ndcg": 1.0,
+      "routes": [
+        {
+          "routeId": "route-1",
+          "baselineRank": 1,
+          "selected": true,
+          "mlScore": 1.2139570713043213
+        },
+        {
+          "routeId": "route-2",
+          "baselineRank": 2,
+          "selected": false,
+          "mlScore": -0.41922515630722046
+        },
+        {
+          "routeId": "route-3",
+          "baselineRank": 3,
+          "selected": false,
+          "mlScore": -1.1686769723892212
+        }
+      ]
+    },
+    {
+      "requestId": "eb8cd1f1-aee2-416b-be5e-837bca5fdcb9",
+      "selectedRouteId": "route-1",
+      "selectedBaselineRank": 1,
+      "predictedRouteId": "route-1",
+      "tiedAtTop": false,
+      "selectedInTopTie": true,
+      "strictMatch": true,
+      "ndcg": 1.0,
+      "routes": [
+        {
+          "routeId": "route-1",
+          "baselineRank": 1,
+          "selected": true,
+          "mlScore": 1.205712080001831
+        },
+        {
+          "routeId": "route-2",
+          "baselineRank": 2,
+          "selected": false,
+          "mlScore": -1.433573842048645
+        }
+      ]
+    },
+    {
+      "requestId": "886d4c4a-c8c7-4917-a01e-704fdb1cbb26",
+      "selectedRouteId": "route-1",
+      "selectedBaselineRank": 1,
+      "predictedRouteId": "route-1",
+      "tiedAtTop": false,
+      "selectedInTopTie": true,
+      "strictMatch": true,
+      "ndcg": 1.0,
+      "routes": [
+        {
+          "routeId": "route-1",
+          "baselineRank": 1,
+          "selected": true,
+          "mlScore": 1.2491203546524048
+        },
+        {
+          "routeId": "route-2",
+          "baselineRank": 2,
+          "selected": false,
+          "mlScore": -1.3774433135986328
+        }
+      ]
+    },
+    {
+      "requestId": "223d2427-e086-4e90-aff9-74f338cddab9",
+      "selectedRouteId": "route-1",
+      "selectedBaselineRank": 2,
+      "predictedRouteId": "route-2",
+      "tiedAtTop": false,
+      "selectedInTopTie": false,
+      "strictMatch": false,
+      "ndcg": 0.6309297535714573,
+      "routes": [
+        {
+          "routeId": "route-2",
+          "baselineRank": 1,
+          "selected": false,
+          "mlScore": 1.1616896390914917
+        },
+        {
+          "routeId": "route-1",
+          "baselineRank": 2,
+          "selected": true,
+          "mlScore": -0.2986912429332733
+        },
+        {
+          "routeId": "route-3",
+          "baselineRank": 3,
+          "selected": false,
+          "mlScore": -1.4061000347137451
+        }
+      ]
+    },
+    {
+      "requestId": "705f6a65-dc01-43ee-9cb6-b9b8a3a4f69c",
+      "selectedRouteId": "route-1",
+      "selectedBaselineRank": 1,
+      "predictedRouteId": "route-1",
+      "tiedAtTop": false,
+      "selectedInTopTie": true,
+      "strictMatch": true,
+      "ndcg": 1.0,
+      "routes": [
+        {
+          "routeId": "route-1",
+          "baselineRank": 1,
+          "selected": true,
+          "mlScore": 1.1951128244400024
+        },
+        {
+          "routeId": "route-2",
+          "baselineRank": 2,
+          "selected": false,
+          "mlScore": -1.4037246704101562
+        }
+      ]
+    },
+    {
+      "requestId": "325b5856-cb3e-4034-b1c5-64262bf4383a",
+      "selectedRouteId": "route-1",
+      "selectedBaselineRank": 1,
+      "predictedRouteId": "route-1",
+      "tiedAtTop": false,
+      "selectedInTopTie": true,
+      "strictMatch": true,
+      "ndcg": 1.0,
+      "routes": [
+        {
+          "routeId": "route-1",
+          "baselineRank": 1,
+          "selected": true,
+          "mlScore": 1.264464020729065
+        },
+        {
+          "routeId": "route-2",
+          "baselineRank": 2,
+          "selected": false,
+          "mlScore": -1.3742034435272217
+        }
+      ]
+    },
+    {
+      "requestId": "42284bdd-6fb2-4ca0-b51a-5691c9a60929",
+      "selectedRouteId": "route-2",
+      "selectedBaselineRank": 2,
+      "predictedRouteId": "route-1",
+      "tiedAtTop": false,
+      "selectedInTopTie": false,
+      "strictMatch": false,
+      "ndcg": 0.5,
+      "routes": [
+        {
+          "routeId": "route-1",
+          "baselineRank": 1,
+          "selected": false,
+          "mlScore": 1.2900919914245605
+        },
+        {
+          "routeId": "route-3",
+          "baselineRank": 3,
+          "selected": false,
+          "mlScore": -0.9334434270858765
+        },
+        {
+          "routeId": "route-2",
+          "baselineRank": 2,
+          "selected": true,
+          "mlScore": -1.4149607419967651
+        }
+      ]
+    },
+    {
+      "requestId": "5cf1ada5-7de5-4a5a-a6d8-6ab16d09d2a6",
+      "selectedRouteId": "route-2",
+      "selectedBaselineRank": 1,
+      "predictedRouteId": "route-2",
+      "tiedAtTop": false,
+      "selectedInTopTie": true,
+      "strictMatch": true,
+      "ndcg": 1.0,
+      "routes": [
+        {
+          "routeId": "route-2",
+          "baselineRank": 1,
+          "selected": true,
+          "mlScore": 0.8750428557395935
+        },
+        {
+          "routeId": "route-1",
+          "baselineRank": 2,
+          "selected": false,
+          "mlScore": -0.04008083418011665
+        },
+        {
+          "routeId": "route-3",
+          "baselineRank": 3,
+          "selected": false,
+          "mlScore": -1.434140920639038
+        }
+      ]
+    },
+    {
+      "requestId": "c59781a2-93f2-4c98-9037-81b06cb52601",
+      "selectedRouteId": "route-1",
+      "selectedBaselineRank": 1,
+      "predictedRouteId": "route-1",
+      "tiedAtTop": false,
+      "selectedInTopTie": true,
+      "strictMatch": true,
+      "ndcg": 1.0,
+      "routes": [
+        {
+          "routeId": "route-1",
+          "baselineRank": 1,
+          "selected": true,
+          "mlScore": 1.2464913129806519
+        },
+        {
+          "routeId": "route-2",
+          "baselineRank": 2,
+          "selected": false,
+          "mlScore": -1.4235092401504517
+        }
+      ]
+    },
+    {
+      "requestId": "b4052330-adef-4e1e-a645-72f9c629a266",
+      "selectedRouteId": "route-1",
+      "selectedBaselineRank": 3,
+      "predictedRouteId": "route-1",
+      "tiedAtTop": false,
+      "selectedInTopTie": true,
+      "strictMatch": true,
+      "ndcg": 1.0,
+      "routes": [
+        {
+          "routeId": "route-1",
+          "baselineRank": 3,
+          "selected": true,
+          "mlScore": 0.6205374598503113
+        },
+        {
+          "routeId": "route-3",
+          "baselineRank": 1,
+          "selected": false,
+          "mlScore": 0.20932403206825256
+        },
+        {
+          "routeId": "route-2",
+          "baselineRank": 2,
+          "selected": false,
+          "mlScore": -0.811769425868988
+        }
+      ]
+    },
+    {
+      "requestId": "9453c194-ca47-4dc8-9a70-e7d87855cb3b",
+      "selectedRouteId": "route-2",
+      "selectedBaselineRank": 3,
+      "predictedRouteId": "route-2",
+      "tiedAtTop": false,
+      "selectedInTopTie": true,
+      "strictMatch": true,
+      "ndcg": 1.0,
+      "routes": [
+        {
+          "routeId": "route-2",
+          "baselineRank": 3,
+          "selected": true,
+          "mlScore": 1.0712162256240845
+        },
+        {
+          "routeId": "route-3",
+          "baselineRank": 1,
+          "selected": false,
+          "mlScore": -0.7398430109024048
+        },
+        {
+          "routeId": "route-1",
+          "baselineRank": 2,
+          "selected": false,
+          "mlScore": -1.1907165050506592
+        }
+      ]
+    },
+    {
+      "requestId": "b0ee09e8-453c-49f3-9969-4673a81cb5e6",
+      "selectedRouteId": "route-2",
+      "selectedBaselineRank": 1,
+      "predictedRouteId": "route-2",
+      "tiedAtTop": false,
+      "selectedInTopTie": true,
+      "strictMatch": true,
+      "ndcg": 1.0,
+      "routes": [
+        {
+          "routeId": "route-2",
+          "baselineRank": 1,
+          "selected": true,
+          "mlScore": 0.8701000213623047
+        },
+        {
+          "routeId": "route-1",
+          "baselineRank": 2,
+          "selected": false,
+          "mlScore": -0.07622214406728745
+        },
+        {
+          "routeId": "route-3",
+          "baselineRank": 3,
+          "selected": false,
+          "mlScore": -1.4383188486099243
+        }
+      ]
+    },
+    {
+      "requestId": "645ba9f0-646f-486a-a33c-ddfe8fa3c0fd",
+      "selectedRouteId": "route-3",
+      "selectedBaselineRank": 2,
+      "predictedRouteId": "route-3",
+      "tiedAtTop": false,
+      "selectedInTopTie": true,
+      "strictMatch": true,
+      "ndcg": 1.0,
+      "routes": [
+        {
+          "routeId": "route-3",
+          "baselineRank": 2,
+          "selected": true,
+          "mlScore": -0.16159895062446594
+        },
+        {
+          "routeId": "route-2",
+          "baselineRank": 1,
+          "selected": false,
+          "mlScore": -0.6866777539253235
+        },
+        {
+          "routeId": "route-1",
+          "baselineRank": 3,
+          "selected": false,
+          "mlScore": -1.2128400802612305
+        }
+      ]
+    },
+    {
+      "requestId": "15711fdc-920c-4aa7-8953-55b4fdd5e248",
+      "selectedRouteId": "route-1",
+      "selectedBaselineRank": 1,
+      "predictedRouteId": "route-1",
+      "tiedAtTop": false,
+      "selectedInTopTie": true,
+      "strictMatch": true,
+      "ndcg": 1.0,
+      "routes": [
+        {
+          "routeId": "route-1",
+          "baselineRank": 1,
+          "selected": true,
+          "mlScore": 1.2431637048721313
+        },
+        {
+          "routeId": "route-2",
+          "baselineRank": 2,
+          "selected": false,
+          "mlScore": -1.442733645439148
+        }
+      ]
+    },
+    {
+      "requestId": "1397f8c6-bfda-42e5-9db2-841811556878",
+      "selectedRouteId": "route-1",
+      "selectedBaselineRank": 1,
+      "predictedRouteId": "route-1",
+      "tiedAtTop": false,
+      "selectedInTopTie": true,
+      "strictMatch": true,
+      "ndcg": 1.0,
+      "routes": [
+        {
+          "routeId": "route-1",
+          "baselineRank": 1,
+          "selected": true,
+          "mlScore": 1.2814785242080688
+        },
+        {
+          "routeId": "route-2",
+          "baselineRank": 2,
+          "selected": false,
+          "mlScore": -1.3766809701919556
+        }
+      ]
+    },
+    {
+      "requestId": "f4c69125-d7f5-4650-9252-c79b57904cbf",
+      "selectedRouteId": "route-1",
+      "selectedBaselineRank": 1,
+      "predictedRouteId": "route-1",
+      "tiedAtTop": false,
+      "selectedInTopTie": true,
+      "strictMatch": true,
+      "ndcg": 1.0,
+      "routes": [
+        {
+          "routeId": "route-1",
+          "baselineRank": 1,
+          "selected": true,
+          "mlScore": 1.2547297477722168
+        },
+        {
+          "routeId": "route-2",
+          "baselineRank": 2,
+          "selected": false,
+          "mlScore": -0.3935694098472595
+        },
+        {
+          "routeId": "route-3",
+          "baselineRank": 3,
+          "selected": false,
+          "mlScore": -1.1318211555480957
+        }
+      ]
+    },
+    {
+      "requestId": "b6bd995b-d626-4f8a-907b-99a749d1ad16",
+      "selectedRouteId": "route-2",
+      "selectedBaselineRank": 1,
+      "predictedRouteId": "route-2",
+      "tiedAtTop": false,
+      "selectedInTopTie": true,
+      "strictMatch": true,
+      "ndcg": 1.0,
+      "routes": [
+        {
+          "routeId": "route-2",
+          "baselineRank": 1,
+          "selected": true,
+          "mlScore": 0.7688995003700256
+        },
+        {
+          "routeId": "route-1",
+          "baselineRank": 2,
+          "selected": false,
+          "mlScore": -1.1641560792922974
+        }
+      ]
+    },
+    {
+      "requestId": "58a72c35-e139-45c2-87c0-87e52a9a1aff",
+      "selectedRouteId": "route-1",
+      "selectedBaselineRank": 3,
+      "predictedRouteId": "route-1",
+      "tiedAtTop": false,
+      "selectedInTopTie": true,
+      "strictMatch": true,
+      "ndcg": 1.0,
+      "routes": [
+        {
+          "routeId": "route-1",
+          "baselineRank": 3,
+          "selected": true,
+          "mlScore": 0.45724210143089294
+        },
+        {
+          "routeId": "route-3",
+          "baselineRank": 1,
+          "selected": false,
+          "mlScore": -0.5032456517219543
+        },
+        {
+          "routeId": "route-2",
+          "baselineRank": 2,
+          "selected": false,
+          "mlScore": -0.9251701831817627
+        }
+      ]
+    },
+    {
+      "requestId": "63cd230d-a57f-4fd6-b6b2-94efc590dcd1",
+      "selectedRouteId": "route-2",
+      "selectedBaselineRank": 2,
+      "predictedRouteId": "route-2",
+      "tiedAtTop": false,
+      "selectedInTopTie": true,
+      "strictMatch": true,
+      "ndcg": 1.0,
+      "routes": [
+        {
+          "routeId": "route-2",
+          "baselineRank": 2,
+          "selected": true,
+          "mlScore": 1.1876569986343384
+        },
+        {
+          "routeId": "route-1",
+          "baselineRank": 1,
+          "selected": false,
+          "mlScore": -1.290027379989624
+        },
+        {
+          "routeId": "route-3",
+          "baselineRank": 3,
+          "selected": false,
+          "mlScore": -1.3038934469223022
+        }
+      ]
+    },
+    {
+      "requestId": "0c462eba-cef3-4543-a69c-da958eb6cef9",
+      "selectedRouteId": "route-2",
+      "selectedBaselineRank": 1,
+      "predictedRouteId": "route-2",
+      "tiedAtTop": false,
+      "selectedInTopTie": true,
+      "strictMatch": true,
+      "ndcg": 1.0,
+      "routes": [
+        {
+          "routeId": "route-2",
+          "baselineRank": 1,
+          "selected": true,
+          "mlScore": 0.8833860158920288
+        },
+        {
+          "routeId": "route-1",
+          "baselineRank": 2,
+          "selected": false,
+          "mlScore": -0.11259187012910843
+        },
+        {
+          "routeId": "route-3",
+          "baselineRank": 3,
+          "selected": false,
+          "mlScore": -1.4130696058273315
+        }
+      ]
+    },
+    {
+      "requestId": "f861a93f-3ad0-486f-8edc-4563581434d7",
+      "selectedRouteId": "route-2",
+      "selectedBaselineRank": 1,
+      "predictedRouteId": "route-2",
+      "tiedAtTop": false,
+      "selectedInTopTie": true,
+      "strictMatch": true,
+      "ndcg": 1.0,
+      "routes": [
+        {
+          "routeId": "route-2",
+          "baselineRank": 1,
+          "selected": true,
+          "mlScore": 0.03969886153936386
+        },
+        {
+          "routeId": "route-3",
+          "baselineRank": 2,
+          "selected": false,
+          "mlScore": -0.9907610416412354
+        },
+        {
+          "routeId": "route-1",
+          "baselineRank": 3,
+          "selected": false,
+          "mlScore": -1.3043358325958252
+        }
+      ]
+    },
+    {
+      "requestId": "c5abb5f1-9ea4-4578-93bf-87cd9c119e15",
+      "selectedRouteId": "route-2",
+      "selectedBaselineRank": 1,
+      "predictedRouteId": "route-2",
+      "tiedAtTop": false,
+      "selectedInTopTie": true,
+      "strictMatch": true,
+      "ndcg": 1.0,
+      "routes": [
+        {
+          "routeId": "route-2",
+          "baselineRank": 1,
+          "selected": true,
+          "mlScore": 0.12272275239229202
+        },
+        {
+          "routeId": "route-3",
+          "baselineRank": 2,
+          "selected": false,
+          "mlScore": -0.8980671763420105
+        },
+        {
+          "routeId": "route-1",
+          "baselineRank": 3,
+          "selected": false,
+          "mlScore": -1.2924097776412964
+        }
+      ]
+    },
+    {
+      "requestId": "c0ec2d7e-c084-43b8-954a-be83a76ad4d9",
+      "selectedRouteId": "route-1",
+      "selectedBaselineRank": 1,
+      "predictedRouteId": "route-1",
+      "tiedAtTop": false,
+      "selectedInTopTie": true,
+      "strictMatch": true,
+      "ndcg": 1.0,
+      "routes": [
+        {
+          "routeId": "route-1",
+          "baselineRank": 1,
+          "selected": true,
+          "mlScore": 1.2537574768066406
+        },
+        {
+          "routeId": "route-2",
+          "baselineRank": 2,
+          "selected": false,
+          "mlScore": -1.422562599182129
+        }
+      ]
+    },
+    {
+      "requestId": "49ec628e-7c3a-4bfa-972b-ae9a935d112f",
+      "selectedRouteId": "route-1",
+      "selectedBaselineRank": 1,
+      "predictedRouteId": "route-1",
+      "tiedAtTop": false,
+      "selectedInTopTie": true,
+      "strictMatch": true,
+      "ndcg": 1.0,
+      "routes": [
+        {
+          "routeId": "route-1",
+          "baselineRank": 1,
+          "selected": true,
+          "mlScore": 1.2665531635284424
+        },
+        {
+          "routeId": "route-2",
+          "baselineRank": 2,
+          "selected": false,
+          "mlScore": -1.3782942295074463
+        }
+      ]
+    },
+    {
+      "requestId": "1491c426-e466-49a7-9820-f300bdd98b91",
+      "selectedRouteId": "route-1",
+      "selectedBaselineRank": 1,
+      "predictedRouteId": "route-1",
+      "tiedAtTop": false,
+      "selectedInTopTie": true,
+      "strictMatch": true,
+      "ndcg": 1.0,
+      "routes": [
+        {
+          "routeId": "route-1",
+          "baselineRank": 1,
+          "selected": true,
+          "mlScore": 1.2814785242080688
+        },
+        {
+          "routeId": "route-2",
+          "baselineRank": 2,
+          "selected": false,
+          "mlScore": -1.3766809701919556
+        }
+      ]
+    },
+    {
+      "requestId": "e95d77bf-0e7d-40fd-9185-f58abfc22055",
+      "selectedRouteId": "route-1",
+      "selectedBaselineRank": 1,
+      "predictedRouteId": "route-1",
+      "tiedAtTop": false,
+      "selectedInTopTie": true,
+      "strictMatch": true,
+      "ndcg": 1.0,
+      "routes": [
+        {
+          "routeId": "route-1",
+          "baselineRank": 1,
+          "selected": true,
+          "mlScore": 1.2577341794967651
+        },
+        {
+          "routeId": "route-2",
+          "baselineRank": 2,
+          "selected": false,
+          "mlScore": -0.3787555694580078
+        },
+        {
+          "routeId": "route-3",
+          "baselineRank": 3,
+          "selected": false,
+          "mlScore": -1.1252639293670654
+        }
+      ]
+    },
+    {
+      "requestId": "8aad1dd7-33a4-4f25-86e4-e366715aae17",
+      "selectedRouteId": "route-2",
+      "selectedBaselineRank": 1,
+      "predictedRouteId": "route-2",
+      "tiedAtTop": false,
+      "selectedInTopTie": true,
+      "strictMatch": true,
+      "ndcg": 1.0,
+      "routes": [
+        {
+          "routeId": "route-2",
+          "baselineRank": 1,
+          "selected": true,
+          "mlScore": 0.8177839517593384
+        },
+        {
+          "routeId": "route-1",
+          "baselineRank": 2,
+          "selected": false,
+          "mlScore": -1.1574119329452515
+        }
+      ]
+    },
+    {
+      "requestId": "cf3fc7a7-88ec-4d1a-841e-f067d0398a88",
+      "selectedRouteId": "route-1",
+      "selectedBaselineRank": 3,
+      "predictedRouteId": "route-3",
+      "tiedAtTop": false,
+      "selectedInTopTie": false,
+      "strictMatch": false,
+      "ndcg": 0.6309297535714573,
+      "routes": [
+        {
+          "routeId": "route-3",
+          "baselineRank": 1,
+          "selected": false,
+          "mlScore": 0.5120485424995422
+        },
+        {
+          "routeId": "route-1",
+          "baselineRank": 3,
+          "selected": true,
+          "mlScore": 0.23752734065055847
+        },
+        {
+          "routeId": "route-2",
+          "baselineRank": 2,
+          "selected": false,
+          "mlScore": 0.11521230638027191
+        }
+      ]
+    },
+    {
+      "requestId": "7ceeee32-1b88-46c4-866a-d16b6320d03f",
+      "selectedRouteId": "route-2",
+      "selectedBaselineRank": 2,
+      "predictedRouteId": "route-2",
+      "tiedAtTop": false,
+      "selectedInTopTie": true,
+      "strictMatch": true,
+      "ndcg": 1.0,
+      "routes": [
+        {
+          "routeId": "route-2",
+          "baselineRank": 2,
+          "selected": true,
+          "mlScore": 1.20668625831604
+        },
+        {
+          "routeId": "route-1",
+          "baselineRank": 1,
+          "selected": false,
+          "mlScore": -1.314660906791687
+        },
+        {
+          "routeId": "route-3",
+          "baselineRank": 3,
+          "selected": false,
+          "mlScore": -1.3236420154571533
+        }
+      ]
+    },
+    {
+      "requestId": "0a7b4114-a10b-46d7-a0a5-375b7034f38e",
+      "selectedRouteId": "route-2",
+      "selectedBaselineRank": 1,
+      "predictedRouteId": "route-2",
+      "tiedAtTop": false,
+      "selectedInTopTie": true,
+      "strictMatch": true,
+      "ndcg": 1.0,
+      "routes": [
+        {
+          "routeId": "route-2",
+          "baselineRank": 1,
+          "selected": true,
+          "mlScore": 0.8833860158920288
+        },
+        {
+          "routeId": "route-1",
+          "baselineRank": 2,
+          "selected": false,
+          "mlScore": -0.11259187012910843
+        },
+        {
+          "routeId": "route-3",
+          "baselineRank": 3,
+          "selected": false,
+          "mlScore": -1.4130696058273315
+        }
+      ]
+    },
+    {
+      "requestId": "f3c6a41d-a07c-4356-bd0a-c7c616d1a413",
+      "selectedRouteId": "route-3",
+      "selectedBaselineRank": 2,
+      "predictedRouteId": "route-3",
+      "tiedAtTop": false,
+      "selectedInTopTie": true,
+      "strictMatch": true,
+      "ndcg": 1.0,
+      "routes": [
+        {
+          "routeId": "route-3",
+          "baselineRank": 2,
+          "selected": true,
+          "mlScore": 1.1557772159576416
+        },
+        {
+          "routeId": "route-2",
+          "baselineRank": 1,
+          "selected": false,
+          "mlScore": -0.9172630906105042
+        },
+        {
+          "routeId": "route-1",
+          "baselineRank": 3,
+          "selected": false,
+          "mlScore": -1.3020600080490112
+        }
+      ]
+    },
+    {
+      "requestId": "a92e6ed2-07ac-458d-abde-e99f6f8da212",
+      "selectedRouteId": "route-1",
+      "selectedBaselineRank": 1,
+      "predictedRouteId": "route-1",
+      "tiedAtTop": false,
+      "selectedInTopTie": true,
+      "strictMatch": true,
+      "ndcg": 1.0,
+      "routes": [
+        {
+          "routeId": "route-1",
+          "baselineRank": 1,
+          "selected": true,
+          "mlScore": 1.2067111730575562
+        },
+        {
+          "routeId": "route-2",
+          "baselineRank": 2,
+          "selected": false,
+          "mlScore": -1.4209532737731934
+        }
+      ]
+    },
+    {
+      "requestId": "25d1451b-a4de-4d1e-a1d6-4a0b452289f9",
+      "selectedRouteId": "route-1",
+      "selectedBaselineRank": 1,
+      "predictedRouteId": "route-1",
+      "tiedAtTop": false,
+      "selectedInTopTie": true,
+      "strictMatch": true,
+      "ndcg": 1.0,
+      "routes": [
+        {
+          "routeId": "route-1",
+          "baselineRank": 1,
+          "selected": true,
+          "mlScore": 1.2637157440185547
+        },
+        {
+          "routeId": "route-2",
+          "baselineRank": 2,
+          "selected": false,
+          "mlScore": -1.361136555671692
+        }
+      ]
+    },
+    {
+      "requestId": "ce410036-0ca0-4431-a0b1-185bc0410a22",
+      "selectedRouteId": "route-1",
+      "selectedBaselineRank": 1,
+      "predictedRouteId": "route-1",
+      "tiedAtTop": false,
+      "selectedInTopTie": true,
+      "strictMatch": true,
+      "ndcg": 1.0,
+      "routes": [
+        {
+          "routeId": "route-1",
+          "baselineRank": 1,
+          "selected": true,
+          "mlScore": 1.260754108428955
+        },
+        {
+          "routeId": "route-2",
+          "baselineRank": 2,
+          "selected": false,
+          "mlScore": -1.3886263370513916
+        }
+      ]
+    },
+    {
+      "requestId": "53f0f1c4-8372-4f23-8eef-bda258e162df",
+      "selectedRouteId": "route-1",
+      "selectedBaselineRank": 1,
+      "predictedRouteId": "route-1",
+      "tiedAtTop": false,
+      "selectedInTopTie": true,
+      "strictMatch": true,
+      "ndcg": 1.0,
+      "routes": [
+        {
+          "routeId": "route-1",
+          "baselineRank": 1,
+          "selected": true,
+          "mlScore": 1.2073370218276978
+        },
+        {
+          "routeId": "route-2",
+          "baselineRank": 2,
+          "selected": false,
+          "mlScore": -0.3828587234020233
+        },
+        {
+          "routeId": "route-3",
+          "baselineRank": 3,
+          "selected": false,
+          "mlScore": -1.1185939311981201
+        }
+      ]
+    },
+    {
+      "requestId": "f8aab9b8-bcc1-45b2-a817-93f2e925e9d0",
+      "selectedRouteId": "route-2",
+      "selectedBaselineRank": 1,
+      "predictedRouteId": "route-2",
+      "tiedAtTop": false,
+      "selectedInTopTie": true,
+      "strictMatch": true,
+      "ndcg": 1.0,
+      "routes": [
+        {
+          "routeId": "route-2",
+          "baselineRank": 1,
+          "selected": true,
+          "mlScore": 0.7762441635131836
+        },
+        {
+          "routeId": "route-1",
+          "baselineRank": 2,
+          "selected": false,
+          "mlScore": -1.1140366792678833
+        }
+      ]
+    },
+    {
+      "requestId": "64817b30-5a66-4ef6-8d5b-e0cd754a7bf4",
+      "selectedRouteId": "route-1",
+      "selectedBaselineRank": 2,
+      "predictedRouteId": "route-1",
+      "tiedAtTop": false,
+      "selectedInTopTie": true,
+      "strictMatch": true,
+      "ndcg": 1.0,
+      "routes": [
+        {
+          "routeId": "route-1",
+          "baselineRank": 2,
+          "selected": true,
+          "mlScore": 1.0677096843719482
+        },
+        {
+          "routeId": "route-2",
+          "baselineRank": 1,
+          "selected": false,
+          "mlScore": -0.9422475695610046
+        },
+        {
+          "routeId": "route-3",
+          "baselineRank": 3,
+          "selected": false,
+          "mlScore": -1.213128924369812
+        }
+      ]
+    },
+    {
+      "requestId": "2b2cf60e-d2a8-42a4-94ae-d74512ce8b16",
+      "selectedRouteId": "route-2",
+      "selectedBaselineRank": 2,
+      "predictedRouteId": "route-2",
+      "tiedAtTop": false,
+      "selectedInTopTie": true,
+      "strictMatch": true,
+      "ndcg": 1.0,
+      "routes": [
+        {
+          "routeId": "route-2",
+          "baselineRank": 2,
+          "selected": true,
+          "mlScore": 1.1652781963348389
+        },
+        {
+          "routeId": "route-1",
+          "baselineRank": 1,
+          "selected": false,
+          "mlScore": -1.2290467023849487
+        },
+        {
+          "routeId": "route-3",
+          "baselineRank": 3,
+          "selected": false,
+          "mlScore": -1.2792969942092896
+        }
+      ]
+    },
+    {
+      "requestId": "cffdec23-92e8-4fda-9912-afe73403ec0f",
+      "selectedRouteId": "route-3",
+      "selectedBaselineRank": 2,
+      "predictedRouteId": "route-3",
+      "tiedAtTop": false,
+      "selectedInTopTie": true,
+      "strictMatch": true,
+      "ndcg": 1.0,
+      "routes": [
+        {
+          "routeId": "route-3",
+          "baselineRank": 2,
+          "selected": true,
+          "mlScore": 1.1869035959243774
+        },
+        {
+          "routeId": "route-2",
+          "baselineRank": 1,
+          "selected": false,
+          "mlScore": -0.8999763131141663
+        },
+        {
+          "routeId": "route-1",
+          "baselineRank": 3,
+          "selected": false,
+          "mlScore": -1.3042995929718018
+        }
+      ]
+    },
+    {
+      "requestId": "b8167a92-5798-4ae8-ba42-ee85968cdce2",
+      "selectedRouteId": "route-3",
+      "selectedBaselineRank": 2,
+      "predictedRouteId": "route-3",
+      "tiedAtTop": false,
+      "selectedInTopTie": true,
+      "strictMatch": true,
+      "ndcg": 1.0,
+      "routes": [
+        {
+          "routeId": "route-3",
+          "baselineRank": 2,
+          "selected": true,
+          "mlScore": 1.1807677745819092
+        },
+        {
+          "routeId": "route-2",
+          "baselineRank": 1,
+          "selected": false,
+          "mlScore": -0.9440599679946899
+        },
+        {
+          "routeId": "route-1",
+          "baselineRank": 3,
+          "selected": false,
+          "mlScore": -1.3355692625045776
+        }
+      ]
+    },
+    {
+      "requestId": "78c82070-3d93-40f4-a1c5-dbed5867caf6",
+      "selectedRouteId": "route-1",
+      "selectedBaselineRank": 1,
+      "predictedRouteId": "route-1",
+      "tiedAtTop": false,
+      "selectedInTopTie": true,
+      "strictMatch": true,
+      "ndcg": 1.0,
+      "routes": [
+        {
+          "routeId": "route-1",
+          "baselineRank": 1,
+          "selected": true,
+          "mlScore": 1.1951128244400024
+        },
+        {
+          "routeId": "route-2",
+          "baselineRank": 2,
+          "selected": false,
+          "mlScore": -1.4037246704101562
+        }
+      ]
+    },
+    {
+      "requestId": "09c4b9d3-b88b-4428-af1e-f360a6771536",
+      "selectedRouteId": "route-1",
+      "selectedBaselineRank": 1,
+      "predictedRouteId": "route-1",
+      "tiedAtTop": false,
+      "selectedInTopTie": true,
+      "strictMatch": true,
+      "ndcg": 1.0,
+      "routes": [
+        {
+          "routeId": "route-1",
+          "baselineRank": 1,
+          "selected": true,
+          "mlScore": 1.2689725160598755
+        },
+        {
+          "routeId": "route-2",
+          "baselineRank": 2,
+          "selected": false,
+          "mlScore": -1.3899787664413452
+        }
+      ]
+    },
+    {
+      "requestId": "0d439346-1100-4e2b-87b3-4117da82b72e",
+      "selectedRouteId": "route-1",
+      "selectedBaselineRank": 1,
+      "predictedRouteId": "route-1",
+      "tiedAtTop": false,
+      "selectedInTopTie": true,
+      "strictMatch": true,
+      "ndcg": 1.0,
+      "routes": [
+        {
+          "routeId": "route-1",
+          "baselineRank": 1,
+          "selected": true,
+          "mlScore": 1.2224266529083252
+        },
+        {
+          "routeId": "route-2",
+          "baselineRank": 2,
+          "selected": false,
+          "mlScore": -0.44802549481391907
+        },
+        {
+          "routeId": "route-3",
+          "baselineRank": 3,
+          "selected": false,
+          "mlScore": -1.142838478088379
+        }
+      ]
+    },
+    {
+      "requestId": "cf06c50d-b87e-434a-aff0-7d1c05608916",
+      "selectedRouteId": "route-2",
+      "selectedBaselineRank": 2,
+      "predictedRouteId": "route-2",
+      "tiedAtTop": false,
+      "selectedInTopTie": true,
+      "strictMatch": true,
+      "ndcg": 1.0,
+      "routes": [
+        {
+          "routeId": "route-2",
+          "baselineRank": 2,
+          "selected": true,
+          "mlScore": 0.9998838305473328
+        },
+        {
+          "routeId": "route-1",
+          "baselineRank": 1,
+          "selected": false,
+          "mlScore": -1.1771340370178223
+        }
+      ]
+    },
+    {
+      "requestId": "d37dc104-12de-445b-a990-7378923b5c7c",
+      "selectedRouteId": "route-1",
+      "selectedBaselineRank": 2,
+      "predictedRouteId": "route-1",
+      "tiedAtTop": false,
+      "selectedInTopTie": true,
+      "strictMatch": true,
+      "ndcg": 1.0,
+      "routes": [
+        {
+          "routeId": "route-1",
+          "baselineRank": 2,
+          "selected": true,
+          "mlScore": 1.062127709388733
+        },
+        {
+          "routeId": "route-2",
+          "baselineRank": 1,
+          "selected": false,
+          "mlScore": -0.9501283764839172
+        },
+        {
+          "routeId": "route-3",
+          "baselineRank": 3,
+          "selected": false,
+          "mlScore": -1.2502012252807617
+        }
+      ]
+    },
+    {
+      "requestId": "f779db5a-b286-4637-a8b1-300d79c2c116",
+      "selectedRouteId": "route-2",
+      "selectedBaselineRank": 2,
+      "predictedRouteId": "route-2",
+      "tiedAtTop": false,
+      "selectedInTopTie": true,
+      "strictMatch": true,
+      "ndcg": 1.0,
+      "routes": [
+        {
+          "routeId": "route-2",
+          "baselineRank": 2,
+          "selected": true,
+          "mlScore": 1.1317988634109497
+        },
+        {
+          "routeId": "route-1",
+          "baselineRank": 1,
+          "selected": false,
+          "mlScore": -1.2391605377197266
+        },
+        {
+          "routeId": "route-3",
+          "baselineRank": 3,
+          "selected": false,
+          "mlScore": -1.3664157390594482
+        }
+      ]
+    },
+    {
+      "requestId": "1c6d8c96-9e2c-4d8c-a333-146903b26228",
+      "selectedRouteId": "route-2",
+      "selectedBaselineRank": 1,
+      "predictedRouteId": "route-2",
+      "tiedAtTop": false,
+      "selectedInTopTie": true,
+      "strictMatch": true,
+      "ndcg": 1.0,
+      "routes": [
+        {
+          "routeId": "route-2",
+          "baselineRank": 1,
+          "selected": true,
+          "mlScore": 0.8745236396789551
+        },
+        {
+          "routeId": "route-1",
+          "baselineRank": 2,
+          "selected": false,
+          "mlScore": -0.08472888171672821
+        },
+        {
+          "routeId": "route-3",
+          "baselineRank": 3,
+          "selected": false,
+          "mlScore": -1.4442592859268188
+        }
+      ]
+    },
+    {
+      "requestId": "300be0c3-4adf-4c6a-bc40-a26f3ff4fec6",
+      "selectedRouteId": "route-3",
+      "selectedBaselineRank": 2,
+      "predictedRouteId": "route-3",
+      "tiedAtTop": false,
+      "selectedInTopTie": true,
+      "strictMatch": true,
+      "ndcg": 1.0,
+      "routes": [
+        {
+          "routeId": "route-3",
+          "baselineRank": 2,
+          "selected": true,
+          "mlScore": 1.1931756734848022
+        },
+        {
+          "routeId": "route-2",
+          "baselineRank": 1,
+          "selected": false,
+          "mlScore": -0.8260543942451477
+        },
+        {
+          "routeId": "route-1",
+          "baselineRank": 3,
+          "selected": false,
+          "mlScore": -1.3019486665725708
+        }
+      ]
+    },
+    {
+      "requestId": "2a86329b-6eb4-4467-bdf2-6e808b3a7413",
+      "selectedRouteId": "route-1",
+      "selectedBaselineRank": 1,
+      "predictedRouteId": "route-1",
+      "tiedAtTop": false,
+      "selectedInTopTie": true,
+      "strictMatch": true,
+      "ndcg": 1.0,
+      "routes": [
+        {
+          "routeId": "route-1",
+          "baselineRank": 1,
+          "selected": true,
+          "mlScore": 1.1828862428665161
+        },
+        {
+          "routeId": "route-2",
+          "baselineRank": 2,
+          "selected": false,
+          "mlScore": -1.39960777759552
+        }
+      ]
+    },
+    {
+      "requestId": "982484d0-3aef-410c-8bc8-fa48678d96ca",
+      "selectedRouteId": "route-1",
+      "selectedBaselineRank": 1,
+      "predictedRouteId": "route-1",
+      "tiedAtTop": false,
+      "selectedInTopTie": true,
+      "strictMatch": true,
+      "ndcg": 1.0,
+      "routes": [
+        {
+          "routeId": "route-1",
+          "baselineRank": 1,
+          "selected": true,
+          "mlScore": 1.2457815408706665
+        },
+        {
+          "routeId": "route-2",
+          "baselineRank": 2,
+          "selected": false,
+          "mlScore": -1.38181471824646
+        }
+      ]
+    },
+    {
+      "requestId": "967b27fd-111e-46d1-911c-4555a9dc398f",
+      "selectedRouteId": "route-1",
+      "selectedBaselineRank": 1,
+      "predictedRouteId": "route-1",
+      "tiedAtTop": false,
+      "selectedInTopTie": true,
+      "strictMatch": true,
+      "ndcg": 1.0,
+      "routes": [
+        {
+          "routeId": "route-1",
+          "baselineRank": 1,
+          "selected": true,
+          "mlScore": 1.2095704078674316
+        },
+        {
+          "routeId": "route-2",
+          "baselineRank": 2,
+          "selected": false,
+          "mlScore": -0.4103994071483612
+        },
+        {
+          "routeId": "route-3",
+          "baselineRank": 3,
+          "selected": false,
+          "mlScore": -1.1505041122436523
+        }
+      ]
+    },
+    {
+      "requestId": "1bc2e864-b6d3-4e56-a1ac-b028bd20c029",
+      "selectedRouteId": "route-2",
+      "selectedBaselineRank": 2,
+      "predictedRouteId": "route-2",
+      "tiedAtTop": false,
+      "selectedInTopTie": true,
+      "strictMatch": true,
+      "ndcg": 1.0,
+      "routes": [
+        {
+          "routeId": "route-2",
+          "baselineRank": 2,
+          "selected": true,
+          "mlScore": 1.0250937938690186
+        },
+        {
+          "routeId": "route-1",
+          "baselineRank": 1,
+          "selected": false,
+          "mlScore": -1.1981167793273926
+        }
+      ]
+    },
+    {
+      "requestId": "224d541e-f4e1-41e3-be5c-f990a9f821ab",
+      "selectedRouteId": "route-1",
+      "selectedBaselineRank": 2,
+      "predictedRouteId": "route-1",
+      "tiedAtTop": false,
+      "selectedInTopTie": true,
+      "strictMatch": true,
+      "ndcg": 1.0,
+      "routes": [
+        {
+          "routeId": "route-1",
+          "baselineRank": 2,
+          "selected": true,
+          "mlScore": 1.001340627670288
+        },
+        {
+          "routeId": "route-2",
+          "baselineRank": 1,
+          "selected": false,
+          "mlScore": -0.9913851618766785
+        },
+        {
+          "routeId": "route-3",
+          "baselineRank": 3,
+          "selected": false,
+          "mlScore": -1.264519214630127
+        }
+      ]
+    },
+    {
+      "requestId": "4d40dfab-f06c-4c13-8d45-76b6289e88ce",
+      "selectedRouteId": "route-2",
+      "selectedBaselineRank": 2,
+      "predictedRouteId": "route-2",
+      "tiedAtTop": false,
+      "selectedInTopTie": true,
+      "strictMatch": true,
+      "ndcg": 1.0,
+      "routes": [
+        {
+          "routeId": "route-2",
+          "baselineRank": 2,
+          "selected": true,
+          "mlScore": 1.1661056280136108
+        },
+        {
+          "routeId": "route-1",
+          "baselineRank": 1,
+          "selected": false,
+          "mlScore": -1.204235315322876
+        },
+        {
+          "routeId": "route-3",
+          "baselineRank": 3,
+          "selected": false,
+          "mlScore": -1.323349952697754
+        }
+      ]
+    },
+    {
+      "requestId": "0fbd852e-34e3-49e3-9360-25f3dc23b2e7",
+      "selectedRouteId": "route-1",
+      "selectedBaselineRank": 2,
+      "predictedRouteId": "route-2",
+      "tiedAtTop": false,
+      "selectedInTopTie": false,
+      "strictMatch": false,
+      "ndcg": 0.6309297535714573,
+      "routes": [
+        {
+          "routeId": "route-2",
+          "baselineRank": 1,
+          "selected": false,
+          "mlScore": 1.1678540706634521
+        },
+        {
+          "routeId": "route-1",
+          "baselineRank": 2,
+          "selected": true,
+          "mlScore": -0.34398677945137024
+        },
+        {
+          "routeId": "route-3",
+          "baselineRank": 3,
+          "selected": false,
+          "mlScore": -1.3998814821243286
+        }
+      ]
+    },
+    {
+      "requestId": "539a4d6f-3dfd-4456-a58e-b0be197a7946",
+      "selectedRouteId": "route-2",
+      "selectedBaselineRank": 1,
+      "predictedRouteId": "route-2",
+      "tiedAtTop": false,
+      "selectedInTopTie": true,
+      "strictMatch": true,
+      "ndcg": 1.0,
+      "routes": [
+        {
+          "routeId": "route-2",
+          "baselineRank": 1,
+          "selected": true,
+          "mlScore": 0.9309085607528687
+        },
+        {
+          "routeId": "route-1",
+          "baselineRank": 2,
+          "selected": false,
+          "mlScore": 0.0005126760806888342
+        },
+        {
+          "routeId": "route-3",
+          "baselineRank": 3,
+          "selected": false,
+          "mlScore": -1.4358124732971191
+        }
+      ]
+    },
+    {
+      "requestId": "86772e72-b5f9-4131-8098-661014038a11",
+      "selectedRouteId": "route-3",
+      "selectedBaselineRank": 2,
+      "predictedRouteId": "route-3",
+      "tiedAtTop": false,
+      "selectedInTopTie": true,
+      "strictMatch": true,
+      "ndcg": 1.0,
+      "routes": [
+        {
+          "routeId": "route-3",
+          "baselineRank": 2,
+          "selected": true,
+          "mlScore": 1.2070683240890503
+        },
+        {
+          "routeId": "route-2",
+          "baselineRank": 1,
+          "selected": false,
+          "mlScore": -0.9155188798904419
+        },
+        {
+          "routeId": "route-1",
+          "baselineRank": 3,
+          "selected": false,
+          "mlScore": -1.3491877317428589
+        }
+      ]
+    },
+    {
+      "requestId": "8d99d820-6a24-419b-8e50-53e69c3d30bd",
+      "selectedRouteId": "route-1",
+      "selectedBaselineRank": 1,
+      "predictedRouteId": "route-1",
+      "tiedAtTop": false,
+      "selectedInTopTie": true,
+      "strictMatch": true,
+      "ndcg": 1.0,
+      "routes": [
+        {
+          "routeId": "route-1",
+          "baselineRank": 1,
+          "selected": true,
+          "mlScore": 1.1939641237258911
+        },
+        {
+          "routeId": "route-2",
+          "baselineRank": 2,
+          "selected": false,
+          "mlScore": -1.4196900129318237
+        }
+      ]
+    },
+    {
+      "requestId": "d119d51a-7999-42e9-b53a-b41562e8c835",
+      "selectedRouteId": "route-1",
+      "selectedBaselineRank": 1,
+      "predictedRouteId": "route-1",
+      "tiedAtTop": false,
+      "selectedInTopTie": true,
+      "strictMatch": true,
+      "ndcg": 1.0,
+      "routes": [
+        {
+          "routeId": "route-1",
+          "baselineRank": 1,
+          "selected": true,
+          "mlScore": 1.2684317827224731
+        },
+        {
+          "routeId": "route-2",
+          "baselineRank": 2,
+          "selected": false,
+          "mlScore": -1.3866842985153198
+        }
+      ]
+    },
+    {
+      "requestId": "51ecafce-0205-46e1-b17a-cc61d08ddee8",
+      "selectedRouteId": "route-1",
+      "selectedBaselineRank": 1,
+      "predictedRouteId": "route-1",
+      "tiedAtTop": false,
+      "selectedInTopTie": true,
+      "strictMatch": true,
+      "ndcg": 1.0,
+      "routes": [
+        {
+          "routeId": "route-1",
+          "baselineRank": 1,
+          "selected": true,
+          "mlScore": 1.2103245258331299
+        },
+        {
+          "routeId": "route-2",
+          "baselineRank": 2,
+          "selected": false,
+          "mlScore": -0.3997928202152252
+        },
+        {
+          "routeId": "route-3",
+          "baselineRank": 3,
+          "selected": false,
+          "mlScore": -1.1723476648330688
+        }
+      ]
+    },
+    {
+      "requestId": "88acc979-d28b-4f25-a778-6af8c5ae209f",
+      "selectedRouteId": "route-2",
+      "selectedBaselineRank": 2,
+      "predictedRouteId": "route-2",
+      "tiedAtTop": false,
+      "selectedInTopTie": true,
+      "strictMatch": true,
+      "ndcg": 1.0,
+      "routes": [
+        {
+          "routeId": "route-2",
+          "baselineRank": 2,
+          "selected": true,
+          "mlScore": 1.0548303127288818
+        },
+        {
+          "routeId": "route-1",
+          "baselineRank": 1,
+          "selected": false,
+          "mlScore": -1.239753007888794
+        }
+      ]
+    },
+    {
+      "requestId": "313a651e-6c48-4bb1-b360-8a422dc61952",
+      "selectedRouteId": "route-1",
+      "selectedBaselineRank": 2,
+      "predictedRouteId": "route-1",
+      "tiedAtTop": false,
+      "selectedInTopTie": true,
+      "strictMatch": true,
+      "ndcg": 1.0,
+      "routes": [
+        {
+          "routeId": "route-1",
+          "baselineRank": 2,
+          "selected": true,
+          "mlScore": 1.0564073324203491
+        },
+        {
+          "routeId": "route-2",
+          "baselineRank": 1,
+          "selected": false,
+          "mlScore": -0.9630657434463501
+        },
+        {
+          "routeId": "route-3",
+          "baselineRank": 3,
+          "selected": false,
+          "mlScore": -1.2743961811065674
+        }
+      ]
+    },
+    {
+      "requestId": "c5083367-28d1-450c-aa83-27e0803b9a24",
+      "selectedRouteId": "route-2",
+      "selectedBaselineRank": 2,
+      "predictedRouteId": "route-2",
+      "tiedAtTop": false,
+      "selectedInTopTie": true,
+      "strictMatch": true,
+      "ndcg": 1.0,
+      "routes": [
+        {
+          "routeId": "route-2",
+          "baselineRank": 2,
+          "selected": true,
+          "mlScore": 1.1654090881347656
+        },
+        {
+          "routeId": "route-1",
+          "baselineRank": 1,
+          "selected": false,
+          "mlScore": -1.2689144611358643
+        },
+        {
+          "routeId": "route-3",
+          "baselineRank": 3,
+          "selected": false,
+          "mlScore": -1.4241803884506226
+        }
+      ]
+    },
+    {
+      "requestId": "063dfed2-24cc-4464-b3d0-471281f97ca4",
+      "selectedRouteId": "route-2",
+      "selectedBaselineRank": 1,
+      "predictedRouteId": "route-2",
+      "tiedAtTop": false,
+      "selectedInTopTie": true,
+      "strictMatch": true,
+      "ndcg": 1.0,
+      "routes": [
+        {
+          "routeId": "route-2",
+          "baselineRank": 1,
+          "selected": true,
+          "mlScore": 0.837232232093811
+        },
+        {
+          "routeId": "route-1",
+          "baselineRank": 2,
+          "selected": false,
+          "mlScore": -0.16617527604103088
+        },
+        {
+          "routeId": "route-3",
+          "baselineRank": 3,
+          "selected": false,
+          "mlScore": -1.4460254907608032
+        }
+      ]
+    },
+    {
+      "requestId": "afe90b83-7e8c-4149-a5b4-1be952821ba9",
+      "selectedRouteId": "route-3",
+      "selectedBaselineRank": 2,
+      "predictedRouteId": "route-3",
+      "tiedAtTop": false,
+      "selectedInTopTie": true,
+      "strictMatch": true,
+      "ndcg": 1.0,
+      "routes": [
+        {
+          "routeId": "route-3",
+          "baselineRank": 2,
+          "selected": true,
+          "mlScore": 1.1555562019348145
+        },
+        {
+          "routeId": "route-2",
+          "baselineRank": 1,
+          "selected": false,
+          "mlScore": -0.9428440928459167
+        },
+        {
+          "routeId": "route-1",
+          "baselineRank": 3,
+          "selected": false,
+          "mlScore": -1.2926157712936401
+        }
+      ]
+    },
+    {
+      "requestId": "053a7d06-a724-4b10-b477-7f2474797941",
+      "selectedRouteId": "route-1",
+      "selectedBaselineRank": 1,
+      "predictedRouteId": "route-1",
+      "tiedAtTop": false,
+      "selectedInTopTie": true,
+      "strictMatch": true,
+      "ndcg": 1.0,
+      "routes": [
+        {
+          "routeId": "route-1",
+          "baselineRank": 1,
+          "selected": true,
+          "mlScore": 1.2179408073425293
+        },
+        {
+          "routeId": "route-2",
+          "baselineRank": 2,
+          "selected": false,
+          "mlScore": -1.4101662635803223
+        }
+      ]
+    },
+    {
+      "requestId": "4d23a1a0-5488-43d8-b29b-0e3beadac5e2",
+      "selectedRouteId": "route-1",
+      "selectedBaselineRank": 1,
+      "predictedRouteId": "route-1",
+      "tiedAtTop": false,
+      "selectedInTopTie": true,
+      "strictMatch": true,
+      "ndcg": 1.0,
+      "routes": [
+        {
+          "routeId": "route-1",
+          "baselineRank": 1,
+          "selected": true,
+          "mlScore": 1.2665531635284424
+        },
+        {
+          "routeId": "route-2",
+          "baselineRank": 2,
+          "selected": false,
+          "mlScore": -1.3782942295074463
+        }
+      ]
+    },
+    {
+      "requestId": "6c0dd137-897c-45ad-aebc-15cb8d8f44e1",
+      "selectedRouteId": "route-1",
+      "selectedBaselineRank": 1,
+      "predictedRouteId": "route-1",
+      "tiedAtTop": false,
+      "selectedInTopTie": true,
+      "strictMatch": true,
+      "ndcg": 1.0,
+      "routes": [
+        {
+          "routeId": "route-1",
+          "baselineRank": 1,
+          "selected": true,
+          "mlScore": 1.2506343126296997
+        },
+        {
+          "routeId": "route-2",
+          "baselineRank": 2,
+          "selected": false,
+          "mlScore": -1.3812803030014038
+        }
+      ]
+    },
+    {
+      "requestId": "e87e502c-9879-46dd-ab48-fdd186dfff29",
+      "selectedRouteId": "route-1",
+      "selectedBaselineRank": 1,
+      "predictedRouteId": "route-1",
+      "tiedAtTop": false,
+      "selectedInTopTie": true,
+      "strictMatch": true,
+      "ndcg": 1.0,
+      "routes": [
+        {
+          "routeId": "route-1",
+          "baselineRank": 1,
+          "selected": true,
+          "mlScore": 1.2577341794967651
+        },
+        {
+          "routeId": "route-2",
+          "baselineRank": 2,
+          "selected": false,
+          "mlScore": -0.3787555694580078
+        },
+        {
+          "routeId": "route-3",
+          "baselineRank": 3,
+          "selected": false,
+          "mlScore": -1.1252639293670654
+        }
+      ]
+    },
+    {
+      "requestId": "e2a5c4ab-bd84-4c37-9bef-d189193442ea",
+      "selectedRouteId": "route-2",
+      "selectedBaselineRank": 2,
+      "predictedRouteId": "route-2",
+      "tiedAtTop": false,
+      "selectedInTopTie": true,
+      "strictMatch": true,
+      "ndcg": 1.0,
+      "routes": [
+        {
+          "routeId": "route-2",
+          "baselineRank": 2,
+          "selected": true,
+          "mlScore": 1.029083251953125
+        },
+        {
+          "routeId": "route-1",
+          "baselineRank": 1,
+          "selected": false,
+          "mlScore": -1.230899453163147
+        }
+      ]
+    },
+    {
+      "requestId": "a288c8de-5c18-4b97-9dfa-58ef957d85c3",
+      "selectedRouteId": "route-1",
+      "selectedBaselineRank": 2,
+      "predictedRouteId": "route-1",
+      "tiedAtTop": false,
+      "selectedInTopTie": true,
+      "strictMatch": true,
+      "ndcg": 1.0,
+      "routes": [
+        {
+          "routeId": "route-1",
+          "baselineRank": 2,
+          "selected": true,
+          "mlScore": 1.101533055305481
+        },
+        {
+          "routeId": "route-2",
+          "baselineRank": 1,
+          "selected": false,
+          "mlScore": -0.9407494068145752
+        },
+        {
+          "routeId": "route-3",
+          "baselineRank": 3,
+          "selected": false,
+          "mlScore": -1.2799372673034668
+        }
+      ]
+    },
+    {
+      "requestId": "57680ae6-facb-42c9-b2e2-756f36efccfd",
+      "selectedRouteId": "route-2",
+      "selectedBaselineRank": 2,
+      "predictedRouteId": "route-2",
+      "tiedAtTop": false,
+      "selectedInTopTie": true,
+      "strictMatch": true,
+      "ndcg": 1.0,
+      "routes": [
+        {
+          "routeId": "route-2",
+          "baselineRank": 2,
+          "selected": true,
+          "mlScore": 1.1781929731369019
+        },
+        {
+          "routeId": "route-1",
+          "baselineRank": 1,
+          "selected": false,
+          "mlScore": -1.2167714834213257
+        },
+        {
+          "routeId": "route-3",
+          "baselineRank": 3,
+          "selected": false,
+          "mlScore": -1.359659194946289
+        }
+      ]
+    },
+    {
+      "requestId": "abe56d1f-3182-4b16-8bbe-1e4daddc0782",
+      "selectedRouteId": "route-1",
+      "selectedBaselineRank": 2,
+      "predictedRouteId": "route-2",
+      "tiedAtTop": false,
+      "selectedInTopTie": false,
+      "strictMatch": false,
+      "ndcg": 0.6309297535714573,
+      "routes": [
+        {
+          "routeId": "route-2",
+          "baselineRank": 1,
+          "selected": false,
+          "mlScore": 1.1607483625411987
+        },
+        {
+          "routeId": "route-1",
+          "baselineRank": 2,
+          "selected": true,
+          "mlScore": -0.3003605008125305
+        },
+        {
+          "routeId": "route-3",
+          "baselineRank": 3,
+          "selected": false,
+          "mlScore": -1.4365531206130981
+        }
+      ]
+    },
+    {
+      "requestId": "53d11092-0cc0-4278-ae14-fd84ee065293",
+      "selectedRouteId": "route-3",
+      "selectedBaselineRank": 2,
+      "predictedRouteId": "route-3",
+      "tiedAtTop": false,
+      "selectedInTopTie": true,
+      "strictMatch": true,
+      "ndcg": 1.0,
+      "routes": [
+        {
+          "routeId": "route-3",
+          "baselineRank": 2,
+          "selected": true,
+          "mlScore": 1.1942647695541382
+        },
+        {
+          "routeId": "route-2",
+          "baselineRank": 1,
+          "selected": false,
+          "mlScore": -0.8107611536979675
+        },
+        {
+          "routeId": "route-1",
+          "baselineRank": 3,
+          "selected": false,
+          "mlScore": -1.3481687307357788
+        }
+      ]
+    },
+    {
+      "requestId": "adf3b8f7-4b55-459b-a803-d4bd3be71fa5",
+      "selectedRouteId": "route-1",
+      "selectedBaselineRank": 1,
+      "predictedRouteId": "route-1",
+      "tiedAtTop": false,
+      "selectedInTopTie": true,
+      "strictMatch": true,
+      "ndcg": 1.0,
+      "routes": [
+        {
+          "routeId": "route-1",
+          "baselineRank": 1,
+          "selected": true,
+          "mlScore": 1.237870216369629
+        },
+        {
+          "routeId": "route-2",
+          "baselineRank": 2,
+          "selected": false,
+          "mlScore": -1.4189801216125488
+        }
+      ]
+    }
+  ]
+}
