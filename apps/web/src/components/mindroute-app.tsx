@@ -203,9 +203,32 @@ export default function MindRouteApp() {
   const lastAppliedThemeRef = useRef<ThemeMode>("day");
 
   useEffect(() => {
-    getApiHealth()
-      .then(() => setApiOnline(true))
-      .catch(() => setApiOnline(false));
+    let cancelled = false;
+
+    const checkApiHealth = async () => {
+      try {
+        await getApiHealth();
+
+        if (!cancelled) {
+          setApiOnline(true);
+        }
+      } catch {
+        if (!cancelled) {
+          setApiOnline(false);
+        }
+      }
+    };
+
+    void checkApiHealth();
+
+    const interval = window.setInterval(() => {
+      void checkApiHealth();
+    }, 5000);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+    };
   }, []);
 
   useEffect(() => {
