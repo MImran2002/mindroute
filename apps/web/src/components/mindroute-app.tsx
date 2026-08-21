@@ -137,19 +137,19 @@ const MAP_STYLES: Record<ThemeMode, string> = {
 };
 
 const NORMAL_ROUTE_COLORS: Record<RouteRecommendationLabel, string> = {
-  "Best overall": "#2563eb",
-  "Lowest cognitive load": "#7c3aed",
-  "Most comfortable": "#16a34a",
-  Fastest: "#ea580c",
-  Alternative: "#64748b",
+  "Best overall": "#00A6FF",
+  "Lowest cognitive load": "#A855F7",
+  "Most comfortable": "#22C55E",
+  Fastest: "#FF7A00",
+  Alternative: "#E11D48",
 };
 
 const COLOR_BLIND_ROUTE_COLORS: Record<RouteRecommendationLabel, string> = {
-  "Best overall": "#0072b2",
-  "Lowest cognitive load": "#cc79a7",
-  "Most comfortable": "#009e73",
-  Fastest: "#e69f00",
-  Alternative: "#6b7280",
+  "Best overall": "#0072B2",
+  "Lowest cognitive load": "#CC79A7",
+  "Most comfortable": "#009E73",
+  Fastest: "#F0E442",
+  Alternative: "#D55E00",
 };
 
 function getRouteColor(route: WalkingRoute, colorBlindMode: boolean): string {
@@ -335,9 +335,9 @@ export default function MindRouteApp() {
             paint: {
               "line-color": getRouteColor(route, colorBlindMode),
 
-              "line-width": isFocused ? 8 : 5,
+              "line-width": isFocused ? 9 : 6,
 
-              "line-opacity": isFocused ? 0.95 : 0.72,
+              "line-opacity": isFocused ? 1 : 0.88,
             },
           });
 
